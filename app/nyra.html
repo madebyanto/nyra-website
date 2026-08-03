@@ -1,0 +1,3492 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Nyra</title>
+<link rel="icon" href="/images/full-logo/full-logo-nobg.png" type="image/png">
+<link rel="shortcut icon" href="/images/nyra.ico" type="image/x-icon">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Google+Sans+Display:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore, doc, setDoc, getDoc, deleteDoc,
+  collection, getDocs, addDoc, query, where, writeBatch, orderBy, limit
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDsrHAtIh5bsYDHa1wz0LMcmciChAoRikU",
+  authDomain: "myauraid-f03c6.firebaseapp.com",
+  projectId: "myauraid-f03c6",
+  storageBucket: "myauraid-f03c6.firebasestorage.app",
+  messagingSenderId: "190478237725",
+  appId: "1:190478237725:web:0d39907473f511b85a06f4"
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+window.__db   = db;
+window.__auth = auth;
+window.__signOut = signOut;
+window.__fs   = { doc, setDoc, getDoc, deleteDoc, collection, getDocs, addDoc, query, where, writeBatch, orderBy, limit };
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  window.__uid = user.uid;
+  try {
+    const snap = await getDoc(doc(db, `users/${user.uid}`));
+    if (snap.exists()) {
+      const data = snap.data();
+      window.__userName   = data.nome         || 'Utente';
+      window.__userAvatar = data.profileImage || '';
+    } else {
+      window.__userName = 'Utente'; window.__userAvatar = '';
+    }
+  } catch(e) { window.__userName = 'Utente'; window.__userAvatar = ''; }
+  window.dispatchEvent(new Event('nyra-ready'));
+});
+</script>
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;-webkit-text-size-adjust:100%}
+
+/* ============ DESIGN TOKENS — TEMA SCURO (default) ============ */
+:root{
+  --f:'Google Sans','Roboto',sans-serif;
+  --fd:'Google Sans Display','Google Sans',sans-serif;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --bg:#0a0a0d;
+  --bg-2:#0d0d11;
+  --sidebar-bg:#0d0d11;
+  --surface:#15151b;
+  --surface2:#1b1b22;
+  --surface3:#232330;
+  --outline:rgba(255,255,255,0.08);
+  --outline-variant:rgba(255,255,255,0.06);
+  --accent:#8b7bff;
+  --accent-2:#c26bff;
+  --accent-3:#5ec8ff;
+  --accent-grad:linear-gradient(135deg,#8b7bff 0%,#c26bff 55%,#5ec8ff 100%);
+  --on-surface:rgba(255,255,255,0.92);
+  --on-surface-variant:rgba(255,255,255,0.56);
+  --on-surface-dim:rgba(255,255,255,0.36);
+  --primary:#b6a6ff;
+  --primary-container:rgba(139,123,255,0.14);
+  --red:#ff8c85;
+  --green:#7fe0a8;
+  --radius-s:8px;
+  --radius-m:14px;
+  --radius-l:20px;
+  --radius-xl:26px;
+  --sb-w:288px;
+  --sb-w-collapsed:76px;
+  --shadow-menu:0 16px 64px rgba(0,0,0,0.6);
+  --shadow-card:0 24px 80px rgba(0,0,0,0.55);
+  --shadow-pill:0 8px 30px rgba(0,0,0,0.35);
+  --shadow-pill-focus:0 14px 50px rgba(139,123,255,0.16);
+  --shadow-scroll:0 2px 8px rgba(0,0,0,0.3);
+  --shadow-toast:0 4px 16px rgba(0,0,0,0.3);
+  --glow-opacity:0.35;
+  /* [NEW] token per easing "espressivo" in stile Material 3 */
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-spring-soft:cubic-bezier(0.22,1.2,0.36,1);
+  --ease-standard:cubic-bezier(0.2,0,0,1);
+  --ease-emphasized:cubic-bezier(0.16,1,0.3,1);
+  --touch-min:44px;
+}
+
+html[data-theme="light"]{
+  --bg:#f2f2f7;
+  --bg-2:#e8e8f0;
+  --sidebar-bg:#eaeaf2;
+  --surface:#ffffff;
+  --surface2:#f5f5fa;
+  --surface3:#ededf4;
+  --outline:rgba(0,0,0,0.09);
+  --outline-variant:rgba(0,0,0,0.06);
+  --accent:#6b5bdf;
+  --accent-2:#a04bc8;
+  --accent-3:#0088cc;
+  --accent-grad:linear-gradient(135deg,#6b5bdf 0%,#a04bc8 55%,#0088cc 100%);
+  --on-surface:rgba(0,0,0,0.87);
+  --on-surface-variant:rgba(0,0,0,0.55);
+  --on-surface-dim:rgba(0,0,0,0.38);
+  --primary:#5a4dd0;
+  --primary-container:rgba(107,91,223,0.10);
+  --red:#c0392b;
+  --green:#27ae60;
+  --shadow-menu:0 8px 32px rgba(0,0,0,0.14);
+  --shadow-card:0 12px 40px rgba(0,0,0,0.12);
+  --shadow-pill:0 4px 20px rgba(0,0,0,0.08);
+  --shadow-pill-focus:0 8px 30px rgba(107,91,223,0.14);
+  --shadow-scroll:0 2px 8px rgba(0,0,0,0.1);
+  --shadow-toast:0 4px 16px rgba(0,0,0,0.12);
+  --glow-opacity:0.05;
+}
+
+html[data-theme="light"] .chat-opts-menu{
+  background:#ffffff;
+  border-color:rgba(0,0,0,0.1);
+  box-shadow:0 8px 28px rgba(0,0,0,0.13);
+}
+html[data-theme="light"] .com-item{color:rgba(0,0,0,0.85)}
+html[data-theme="light"] .com-item:hover{background:rgba(0,0,0,0.05)}
+
+html[data-theme="light"] #chatList::-webkit-scrollbar-thumb,
+html[data-theme="light"] #chat::-webkit-scrollbar-thumb,
+html[data-theme="light"] .ss-body::-webkit-scrollbar-thumb,
+html[data-theme="light"] #memList::-webkit-scrollbar-thumb{
+  background:rgba(0,0,0,0.18);
+}
+
+html[data-theme="light"]{color-scheme:light}
+html[data-theme="dark"]{color-scheme:dark}
+
+
+body{
+  background:var(--bg);color:var(--on-surface);font-family:var(--f);
+  height:100dvh;overflow:hidden;position:fixed;width:100%;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease,color .25s ease;
+}
+
+img{max-width:100%}
+
+.app-shell{display:flex;height:100dvh;width:100%;position:relative;overflow:hidden}
+
+.glow-backdrop{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.glow-backdrop::before,.glow-backdrop::after{
+  content:'';position:absolute;border-radius:50%;filter:blur(90px);
+  opacity:var(--glow-opacity);
+  animation:glowDrift 18s ease-in-out infinite alternate;
+  transition:opacity .4s ease;
+}
+.glow-backdrop::before{width:520px;height:520px;top:8%;left:50%;transform:translateX(-50%);background:radial-gradient(circle,#8b7bff 0%,#c26bff 45%,transparent 72%)}
+.glow-backdrop::after{width:420px;height:420px;bottom:0%;right:8%;background:radial-gradient(circle,#5ec8ff 0%,#8b7bff 45%,transparent 72%);animation-delay:-9s}
+@keyframes glowDrift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-3%,4%) scale(1.08)}}
+
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:199;opacity:0;visibility:hidden;transition:all .4s var(--ease-standard);backdrop-filter:blur(2px)}
+#ov.on{opacity:1;visibility:visible}
+
+/* ============ SIDEBAR — layout sospeso con bordi arrotondati ============ */
+#sidebar{
+  position:fixed;top:12px;bottom:12px;left:12px;right:auto;width:var(--sb-w);
+  max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);
+  background:var(--sidebar-bg);border:1px solid var(--outline);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-card);
+  transform:translateX(calc(-100% - 24px));
+  opacity:0;
+  transition:transform .5s var(--ease-emphasized),opacity .38s ease,width .35s var(--ease-spring-soft),background .25s ease,border-color .25s ease;
+  z-index:200;display:flex;flex-direction:column;overflow:hidden;
+}
+#sidebar.open{transform:translateX(0);opacity:1}
+#sidebar.collapsed{width:var(--sb-w-collapsed)}
+
+.sb-top{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 8px;flex-shrink:0}
+#sidebar.collapsed .sb-top{justify-content:center}
+.sb-brand{display:flex;align-items:center;gap:10px;overflow:hidden}
+#sidebar.collapsed .sb-brand{display:grid;place-items:center}
+@media (max-width:919px){
+  #sidebar.collapsed .sb-brand{display:none!important}
+}
+.sb-logo{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+.sb-logo img{width:100%;height:100%;object-fit:contain}
+.sb-title{font-family:var(--fd);font-size:clamp(1rem,4vw,1.12rem);font-weight:600;white-space:nowrap;background:var(--accent-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#sidebar.collapsed .sb-title{display:none}
+.sb-collapse-btn{background:none;border:none;color:var(--on-surface-dim);cursor:pointer;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;transition:all .28s var(--ease-spring);flex-shrink:0}
+.sb-collapse-btn:hover{background:var(--surface2);color:var(--on-surface)}
+.sb-collapse-btn:active{transform:scale(.82) rotate(-8deg)}
+#sidebar.collapsed .sb-collapse-btn{display:none}
+@media (max-width:919px){
+  .sb-collapse-btn{display:none!important}
+}
+
+.sb-newchat-row{display:flex;align-items:center;gap:8px;padding:10px 14px 6px}
+.sb-newchat{
+  flex:1;display:flex;align-items:center;gap:10px;padding:11px 14px;min-height:var(--touch-min);
+  border-radius:50px;border:none;
+  background:var(--surface);color:var(--on-surface);font-family:var(--f);
+  font-size:.88rem;font-weight:500;cursor:pointer;
+  transition:all .32s var(--ease-spring);white-space:nowrap;overflow:hidden;
+}
+.sb-newchat:hover{background:var(--surface2);transform:translateY(-1px)}
+.sb-newchat:active{transform:scale(.96)}
+#sidebar.collapsed .sb-newchat span.lbl{display:none}
+#sidebar.collapsed .sb-newchat{justify-content:center;padding:11px;font-size:1.1rem;letter-spacing:-.02em}
+#sidebar.collapsed .sb-newchat .material-icons-round{font-size:1.3rem;color:var(--primary)}
+
+.sb-tempchat-btn{flex-shrink:0;width:var(--touch-min);height:var(--touch-min);border-radius:50%;background:var(--surface);border:1px solid var(--outline);color:var(--on-surface-variant);cursor:pointer;display:grid;place-items:center;transition:all .3s var(--ease-spring)}
+.sb-tempchat-btn:hover{background:var(--surface2);color:var(--primary);border-color:rgba(139,123,255,.35);transform:translateY(-1px)}
+.sb-tempchat-btn:active{transform:scale(.86)}
+.sb-tempchat-btn .material-icons-round{font-size:19px}
+#sidebar.collapsed .sb-tempchat-btn{display:none}
+
+.sb-nav{padding:6px 8px;flex-shrink:0}
+.sb-nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:var(--touch-min);border-radius:var(--radius-m);color:var(--on-surface-variant);cursor:pointer;font-size:.86rem;font-weight:400;transition:all .22s var(--ease-standard);background:none;border:none;width:100%;text-align:left;white-space:nowrap;overflow:hidden}
+.sb-nav-item:hover{background:var(--surface2);color:var(--on-surface)}
+.sb-nav-item:active{transform:scale(.98)}
+.sb-nav-item .material-icons-round{font-size:19px;flex-shrink:0}
+#sidebar.collapsed .sb-nav-item span.lbl{display:none}
+#sidebar.collapsed .sb-nav-item{justify-content:center}
+
+.sb-search-box{display:none;align-items:center;gap:8px;margin:4px 6px 8px;padding:9px 12px;border-radius:50px;background:var(--surface);border:1px solid var(--outline-variant)}
+.sb-search-box.on{display:flex;animation:slideUp .22s var(--ease-standard)}
+.sb-search-box input{flex:1;background:none;border:none;outline:none;color:var(--on-surface);font-family:var(--f);font-size:.83rem}
+.sb-search-box .material-icons-round{font-size:17px;color:var(--on-surface-dim)}
+
+.sb-sec-label{font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--on-surface-dim);padding:14px 16px 6px}
+#sidebar.collapsed .sb-sec-label{display:none}
+
+#chatList{flex:1;overflow-y:auto;overflow-x:hidden;padding:2px 8px;list-style:none}
+#chatList::-webkit-scrollbar{width:4px}
+#chatList::-webkit-scrollbar-thumb{background:var(--outline);border-radius:2px}
+#sidebar.collapsed #chatList{display:none}
+.cl-daygroup{margin-bottom:2px}
+.cl-day{font-size:.68rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--on-surface-dim);padding:10px 10px 4px}
+#chatList li{
+  display:flex;align-items:center;gap:10px;padding:10px 10px;min-height:var(--touch-min);border-radius:var(--radius-m);
+  position:relative;cursor:pointer;font-size:.86rem;font-weight:400;
+  color:var(--on-surface-variant);transition:all .3s var(--ease-standard);margin-bottom:1px;
+  animation:listFadeIn .5s var(--ease-emphasized) both;
+  animation-delay:calc(var(--idx) * 0.04s);user-select:none;
+}
+#chatList li:hover{background:var(--surface2);color:var(--on-surface)}
+@keyframes listFadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+#chatList li .ct{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#chatList li:active{background:var(--surface3);transform:scale(.98)}
+#chatList li.cur{background:var(--primary-container);color:var(--primary);font-weight:500}
+
+.cia{position:relative;flex-shrink:0}
+.cib-more{background:none;border:none;color:var(--on-surface-dim);cursor:pointer;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;transition:all .22s var(--ease-standard);opacity:0}
+#chatList li:hover .cib-more{opacity:1}
+.cib-more:hover{background:var(--surface3);color:var(--on-surface)}
+.cib-more:active{transform:scale(.85)}
+.chat-opts-menu{
+  position:fixed;min-width:160px;
+  background:#17171d;border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--radius-m);box-shadow:0 12px 32px rgba(0,0,0,0.7);
+  z-index:1000;display:none;padding:4px;
+}
+.chat-opts-menu.open{display:block;animation:mmIn .22s var(--ease-spring)}
+.com-item{display:flex;align-items:center;gap:10px;padding:10px 12px;min-height:40px;border-radius:var(--radius-s);color:rgba(255,255,255,0.87);font-size:.85rem;cursor:pointer;transition:background .18s,transform .18s;width:100%;background:none;border:none;font-family:var(--f);white-space:nowrap}
+.com-item:hover{background:rgba(255,255,255,0.08)}
+.com-item:active{transform:scale(.97)}
+.com-item.danger{color:var(--red)}
+.com-item .material-icons-round{font-size:18px;flex-shrink:0}
+
+.sb-bottom{
+  border-top:1px solid var(--outline-variant);
+  padding:10px;flex-shrink:0;
+  position:relative;
+  transition:border-color .25s ease;
+}
+.don-strip{
+  display:none;margin:0 2px 8px;padding:12px 14px;border-radius:var(--radius-l);
+  background:linear-gradient(135deg,rgba(139,123,255,.12),rgba(94,200,255,.08));
+  border:1px solid rgba(139,123,255,.28);
+  animation:donIn .45s var(--ease-emphasized) both;
+}
+.don-strip.show{display:block}
+@keyframes donIn{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.don-strip-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.don-strip-title{font-size:.76rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:5px}
+.don-strip-x{background:none;border:none;color:var(--on-surface-dim);cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;padding:6px;transition:color .15s,transform .18s}
+.don-strip-x:hover{color:var(--on-surface)}
+.don-strip-x:active{transform:scale(.8)}
+.don-strip-desc{font-size:.71rem;color:var(--on-surface-variant);line-height:1.5;margin-bottom:10px}
+.don-strip-btn{
+  display:block;text-align:center;padding:8px 14px;border-radius:50px;
+  background:var(--primary-container);border:1px solid rgba(139,123,255,.3);
+  color:var(--primary);font-size:.78rem;font-weight:700;text-decoration:none;
+  font-family:var(--f);transition:all .22s var(--ease-spring);cursor:pointer;
+}
+.don-strip-btn:hover{background:rgba(139,123,255,.22);transform:translateY(-1px)}
+.don-strip-btn:active{transform:scale(.95)}
+#sidebar.collapsed .don-strip{display:none!important}
+
+.sb-profile-row{display:flex;align-items:center;gap:10px;padding:8px;min-height:var(--touch-min);border-radius:var(--radius-m);cursor:pointer;transition:background .22s var(--ease-standard);position:relative}
+.sb-profile-row:hover{background:var(--surface2)}
+.sb-profile-row:active{transform:scale(.99)}
+.sb-av{width:32px;height:32px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;overflow:hidden;flex-shrink:0;font-size:.8rem;font-weight:600;color:var(--primary);position:relative}
+.sb-av img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s ease}
+.sb-av img.loaded{opacity:1}
+.sb-prof-info{display:flex;flex-direction:column;min-width:0;flex:1}
+#sidebar.collapsed .sb-prof-info{display:none}
+.sb-prof-name{font-size:.83rem;font-weight:500;color:var(--on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-prof-sub{font-size:.7rem;color:var(--on-surface-dim)}
+.sb-settings-gear{background:none;border:none;color:var(--on-surface-dim);cursor:pointer;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;transition:all .32s var(--ease-spring)}
+.sb-settings-gear:hover{background:var(--surface3);color:var(--primary);transform:rotate(50deg)}
+.sb-settings-gear:active{transform:scale(.8) rotate(70deg)}
+#sidebar.collapsed .sb-settings-gear{display:none}
+
+@media (min-width:920px){
+  #ov{display:none!important}
+}
+/* Su desktop la sidebar resta "sospesa" ma di default aperta e la main-col si adatta */
+@media (min-width:920px){
+  #sidebar{position:fixed}
+  .main-col{margin-left:calc(var(--sb-w) + 24px);transition:margin-left .5s var(--ease-emphasized)}
+  .main-col.sb-collapsed-margin{margin-left:calc(var(--sb-w-collapsed) + 24px)}
+  .main-col.sb-closed-margin{margin-left:0}
+}
+
+.main-col{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;z-index:1;overflow:hidden}
+
+header{
+  display:flex;align-items:center;
+  padding:calc(var(--sat) + 12px) 8px 12px;
+  position:relative;z-index:10;flex-shrink:0;background:transparent;
+  gap:4px;
+}
+/* [FIX] rimosso il vecchio .h-back duplicato: resta un unico bottone funzionale per aprire/chiudere il menu, sia su mobile che desktop */
+.h-menu-toggle{background:none;border:none;cursor:pointer;color:var(--on-surface-variant);display:grid;place-items:center;width:var(--touch-min);height:var(--touch-min);border-radius:50%;flex-shrink:0;transition:all .28s var(--ease-spring)}
+.h-menu-toggle:hover{background:var(--surface2);color:var(--on-surface)}
+.h-menu-toggle:active{background:rgba(255,255,255,.1);transform:scale(.82)}
+.h-menu-toggle .material-icons-round{font-size:22px}
+@media (min-width:920px){
+  .h-menu-toggle{display:none!important}
+}
+
+.h-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;overflow:hidden}
+.h-chat-name{font-family:var(--fd);font-size:clamp(.85rem,3.2vw,.95rem);font-weight:500;color:var(--on-surface);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+
+/* bottone Media & File in alto a destra */
+.h-media-toggle{background:none;border:none;cursor:pointer;color:var(--on-surface-variant);display:grid;place-items:center;width:var(--touch-min);height:var(--touch-min);border-radius:50%;flex-shrink:0;transition:all .28s var(--ease-spring);margin-left:auto}
+.h-media-toggle:hover{background:var(--surface2);color:var(--on-surface)}
+.h-media-toggle:active{transform:scale(.82)}
+.h-media-toggle.active{background:var(--primary-container);color:var(--primary)}
+.h-media-toggle .material-icons-round{font-size:21px}
+
+#chat{
+  flex:1;overflow-y:auto;overflow-x:hidden;padding:0;
+  display:flex;flex-direction:column;position:relative;z-index:1;
+  -webkit-overflow-scrolling:touch;scroll-behavior:auto;
+}
+#chat::-webkit-scrollbar{width:6px}
+#chat::-webkit-scrollbar-thumb{background:var(--outline);border-radius:3px}
+.chat-spacer{height:110px;flex-shrink:0;pointer-events:none}
+.chat-inner{width:100%;max-width:760px;margin:0 auto;padding:24px 8px 0}
+
+#welcomeWrap{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 20px 8px;animation:wIn .55s var(--ease-standard) both}
+@keyframes wIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.w-icon{width:76px;height:76px;margin-bottom:22px;display:flex;align-items:center;justify-content:center}
+.gem-star{animation:starPulse 3.2s ease-in-out infinite}
+@keyframes starPulse{
+  0%,100%{filter:drop-shadow(0 0 10px rgba(139,123,255,.45))}
+  50%{filter:drop-shadow(0 0 26px rgba(194,107,255,.65)) drop-shadow(0 0 10px rgba(94,200,255,.4))}
+}
+#welcomeWrap h1{font-family:var(--fd);font-size:clamp(1.5rem,6vw,2.1rem);font-weight:500;line-height:1.2;margin-bottom:6px;text-align:center;background:var(--accent-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#welcomeWrap p{font-size:clamp(.88rem,3vw,1rem);font-weight:400;color:var(--on-surface-variant);text-align:center;line-height:1.6}
+#welcomeWrap p strong{color:var(--on-surface);font-weight:600}
+.w-suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px;max-width:600px}
+.w-chip{padding:10px 16px;min-height:var(--touch-min);border-radius:50px;background:var(--surface);border:1px solid var(--outline);color:var(--on-surface-variant);font-size:.82rem;font-family:var(--f);cursor:pointer;transition:all .32s var(--ease-spring)}
+.w-chip:hover{background:var(--surface2);color:var(--on-surface);transform:translateY(-2px);border-color:rgba(139,123,255,.35)}
+.w-chip:active{transform:scale(.94)}
+
+.temp-exit-btn{
+  display:flex;align-items:center;gap:6px;margin-top:16px;
+  padding:9px 20px;min-height:var(--touch-min);border-radius:50px;
+  background:rgba(255,140,133,.1);border:1px solid rgba(255,140,133,.25);
+  color:var(--red);font-size:.82rem;font-weight:600;
+  cursor:pointer;font-family:var(--f);transition:all .28s var(--ease-spring);
+}
+.temp-exit-btn:hover{background:rgba(255,140,133,.18);transform:translateY(-1px)}
+.temp-exit-btn:active{transform:scale(.95)}
+.temp-exit-btn .material-icons-round{font-size:17px}
+.temp-notice{text-align:center;font-size:.74rem;color:var(--on-surface-dim);padding:11px 14px;margin-bottom:12px;border:1px dashed var(--outline);border-radius:var(--radius-m);background:rgba(255,255,255,.02);line-height:1.5;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}
+.temp-notice .material-icons-round{font-size:14px;vertical-align:-2px;margin-right:4px;color:var(--primary)}
+.temp-notice-exit-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 12px;border-radius:50px;
+  background:rgba(255,140,133,.1);border:1px solid rgba(255,140,133,.2);
+  color:var(--red);font-size:.72rem;font-weight:600;
+  cursor:pointer;font-family:var(--f);transition:all .2s var(--ease-spring);
+}
+.temp-notice-exit-btn:hover{background:rgba(255,140,133,.18)}
+.temp-notice-exit-btn:active{transform:scale(.92)}
+.temp-notice-exit-btn .material-icons-round{font-size:14px}
+
+.msg-row{display:flex;flex-direction:column;margin-bottom:4px;padding:8px 8px}
+.msg-row.user{align-items:flex-end}
+.msg-row.nyra{align-items:flex-start}
+
+.bubble-user{
+  max-width:82%;background:var(--surface2);border:1px solid var(--outline-variant);
+  border-radius:var(--radius-xl) var(--radius-xl) var(--radius-s) var(--radius-xl);
+  padding:12px 18px;font-size:.96rem;font-weight:400;line-height:1.55;
+  color:var(--on-surface);word-break:break-word;
+  transition:background .25s ease,border-color .25s ease;
+}
+.bubble-user .user-img-preview{display:block;width:100%;max-width:240px;border-radius:var(--radius-m);margin-bottom:8px;object-fit:cover;aspect-ratio:4/3;background:var(--surface3);opacity:0;transition:opacity .3s ease}
+.bubble-user .user-img-preview.loaded{opacity:1}
+.bubble-user .user-img-preview:last-child{margin-bottom:0}
+
+.bubble-nyra{
+  max-width:96%;background:transparent;border-radius:0;
+  padding:4px 0 2px;font-size:.96rem;font-weight:400;line-height:1.75;
+  color:var(--on-surface);word-break:break-word;
+}
+.nyra-star-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+
+.bubble-nyra>*:first-child{margin-top:0!important}
+.bubble-nyra>*:last-child{margin-bottom:0!important}
+.bubble-nyra p{margin:0 0 12px;line-height:1.75}
+.bubble-nyra h1{font-size:1.25em;font-weight:500;font-family:var(--fd);color:var(--on-surface);margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--outline)}
+.bubble-nyra h2{font-size:1.1em;font-weight:500;font-family:var(--fd);color:var(--on-surface);margin:16px 0 7px}
+.bubble-nyra h3{font-size:1em;font-weight:500;color:var(--on-surface);margin:12px 0 5px}
+.bubble-nyra h4{font-size:.93em;font-weight:500;color:var(--on-surface-variant);margin:10px 0 4px}
+.bubble-nyra ul{padding-left:0;margin:6px 0 12px;list-style:none}
+.bubble-nyra ul li{position:relative;padding-left:20px;margin-bottom:8px;color:var(--on-surface);line-height:1.65}
+.bubble-nyra ul li::before{content:'•';position:absolute;left:5px;color:var(--primary);font-size:1.1em;line-height:1.5}
+.bubble-nyra ol{padding-left:22px;margin:6px 0 12px}
+.bubble-nyra ol li{margin-bottom:8px;color:var(--on-surface);line-height:1.65;padding-left:4px}
+.bubble-nyra li ul,.bubble-nyra li ol{margin:4px 0 4px 4px}
+.bubble-nyra strong{font-weight:600;color:var(--on-surface)}
+.bubble-nyra em{font-style:italic;color:var(--on-surface-variant)}
+.bubble-nyra del{text-decoration:line-through;color:var(--on-surface-dim)}
+.bubble-nyra code{background:var(--surface2);border-radius:var(--radius-s);padding:2px 7px;font-size:.84em;color:var(--primary);font-family:'Roboto Mono','Courier New',monospace;border:1px solid var(--outline)}
+.bubble-nyra pre{position:relative;background:var(--surface2);border:1px solid var(--outline);border-radius:var(--radius-m);padding:16px;overflow-x:auto;margin:12px 0;max-width:100%}
+.bubble-nyra pre code{background:none;padding:0;color:var(--on-surface);font-size:.84rem;border:none;white-space:pre}
+.bubble-nyra .code-lang{position:absolute;top:10px;right:80px;font-size:.65rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--on-surface-dim);font-family:var(--f)}
+.bubble-nyra .copy-code{position:absolute;top:8px;right:10px;background:var(--surface3);border:1px solid var(--outline);border-radius:var(--radius-s);padding:6px 12px;min-height:32px;font-size:.72rem;font-weight:500;font-family:var(--f);color:var(--on-surface-variant);cursor:pointer;transition:all .18s var(--ease-standard)}
+.bubble-nyra .copy-code:active{background:var(--outline);color:var(--on-surface);transform:scale(.95)}
+.bubble-nyra a{color:var(--accent-3);text-decoration:none;border-bottom:1px solid rgba(94,200,255,.3)}
+.bubble-nyra blockquote{border-left:3px solid var(--primary);padding:8px 16px;color:var(--on-surface-variant);margin:10px 0;background:var(--primary-container);border-radius:0 var(--radius-s) var(--radius-s) 0}
+.bubble-nyra blockquote p{margin:0}
+.bubble-nyra table{border-collapse:collapse;width:100%;margin:12px 0;border-radius:var(--radius-m);overflow:hidden;display:block;overflow-x:auto}
+.bubble-nyra th,.bubble-nyra td{border:1px solid var(--outline);padding:10px 14px;font-size:.9em;text-align:left}
+.bubble-nyra th{background:var(--surface2);font-weight:500;color:var(--on-surface);font-size:.84em;letter-spacing:.02em}
+.bubble-nyra td{color:var(--on-surface)}
+.bubble-nyra tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.bubble-nyra hr{border:none;border-top:1px solid var(--outline);margin:16px 0}
+.bubble-nyra input[type=checkbox]{accent-color:var(--primary);margin-right:6px;vertical-align:middle}
+/* le immagini inline nel markdown di Nyra vengono nascoste: vengono estratte e mostrate in galleria a fine risposta */
+.bubble-nyra img.inline-extracted{display:none}
+
+@keyframes bubbleIn{from{opacity:0;transform:translateY(15px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.bubble-pop{animation:bubbleIn .55s var(--ease-spring-soft) both}
+
+@keyframes wordFade{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
+.fw{opacity:0;display:inline;animation:wordFade 220ms ease forwards;white-space:pre}
+
+.thinking{display:inline-flex;gap:6px;align-items:center;padding:6px 0}
+.thinking span{width:8px;height:8px;border-radius:50%;background:var(--accent-grad);animation:dk 1.4s infinite ease-in-out}
+.thinking span:nth-child(1){animation-delay:0s}
+.thinking span:nth-child(2){animation-delay:.16s}
+.thinking span:nth-child(3){animation-delay:.32s}
+@keyframes dk{0%,80%,100%{transform:scale(0.5);opacity:.4}40%{transform:scale(1);opacity:1}}
+.status-line{display:flex;align-items:center;gap:10px;padding:4px 0;color:var(--on-surface-variant);font-size:.88rem;animation:statusFade 1.6s ease-in-out infinite}
+@keyframes statusFade{0%,100%{opacity:.55}50%{opacity:1}}
+.status-line .material-icons-round{font-size:17px;color:var(--primary)}
+
+.sources-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.source-chip{display:flex;align-items:center;gap:6px;max-width:220px;padding:8px 12px;min-height:36px;border-radius:50px;background:var(--surface2);border:1px solid var(--outline);color:var(--on-surface-variant);font-size:.78rem;text-decoration:none;transition:all .25s var(--ease-standard)}
+.source-chip:hover{background:var(--surface3);color:var(--on-surface);transform:translateY(-1px)}
+.source-chip:active{transform:scale(.95)}
+.source-chip .sc-n{width:18px;height:18px;border-radius:50%;background:var(--primary-container);color:var(--primary);font-size:.66rem;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+.source-chip .sc-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ============ GALLERIA IMMAGINI RAGGRUPPATE A FINE RISPOSTA ============ */
+.nyra-gallery{margin-top:14px}
+.nyra-gallery-label{font-size:.72rem;font-weight:600;color:var(--on-surface-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.nyra-gallery-label .material-icons-round{font-size:15px;color:var(--primary)}
+.nyra-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.nyra-gallery-item{border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--outline);aspect-ratio:4/3;background:var(--surface2);cursor:pointer;transition:transform .3s var(--ease-spring),border-color .22s,box-shadow .22s;position:relative}
+.nyra-gallery-item:hover{transform:scale(1.04);border-color:rgba(139,123,255,.45);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.nyra-gallery-item:active{transform:scale(.97)}
+.nyra-gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s ease}
+.nyra-gallery-item img.loading{opacity:0}
+.nyra-gallery-item img.loaded{opacity:1}
+.nyra-gallery-item .ngi-cap{position:absolute;left:0;right:0;bottom:0;padding:6px 8px;font-size:.68rem;color:#fff;background:linear-gradient(0deg,rgba(0,0,0,.75),transparent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nyra-gallery-item.broken{display:none}
+
+/* Search images (auto ricerca web) — riusa lo stesso stile griglia */
+.search-images-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:14px}
+.search-img-item{border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--outline);aspect-ratio:16/10;background:var(--surface2);cursor:pointer;transition:transform .3s var(--ease-spring),border-color .22s,box-shadow .22s}
+.search-img-item:hover{transform:scale(1.05);border-color:rgba(139,123,255,.45);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.search-img-item:active{transform:scale(.96)}
+.search-img-item img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .25s ease}
+.search-img-item img.loading{opacity:0}
+.search-img-item img.loaded{opacity:1}
+.search-images-caption{font-size:.7rem;color:var(--on-surface-dim);margin-top:6px;display:flex;align-items:center;gap:4px}
+.search-images-caption .material-icons-round{font-size:13px}
+
+.filecard{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-l);background:var(--surface2);border:1px solid var(--outline);margin:12px 0;max-width:340px;transition:all .25s var(--ease-standard)}
+.filecard:hover{border-color:rgba(139,123,255,.4)}
+.fc-icon{width:40px;height:40px;border-radius:var(--radius-m);background:var(--primary-container);color:var(--primary);display:grid;place-items:center;flex-shrink:0}
+.fc-icon .material-icons-round{font-size:20px}
+.fc-info{flex:1;min-width:0}
+.fc-name{font-size:.87rem;font-weight:500;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-meta{font-size:.72rem;color:var(--on-surface-dim);text-transform:uppercase;letter-spacing:.04em}
+.fc-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.fc-dl{background:var(--primary-container);border:1px solid rgba(139,123,255,.25);color:var(--primary);border-radius:50%;width:40px;height:40px;display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:all .28s var(--ease-spring)}
+.fc-dl:hover{background:rgba(139,123,255,.24);transform:scale(1.08)}
+.fc-dl:active{transform:scale(.86)}
+/* bottone "Salva in Aura Docs" sulle card file .adxe */
+.fc-adx{background:none;border:1px solid var(--outline);color:var(--on-surface-variant);border-radius:50%;width:40px;height:40px;display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:all .28s var(--ease-spring)}
+.fc-adx:hover{background:var(--surface3);color:var(--primary);border-color:rgba(139,123,255,.3)}
+.fc-adx:active{transform:scale(.86)}
+.fc-adx.saved{color:var(--green);border-color:rgba(127,224,168,.35)}
+
+.msg-acts{display:flex;gap:2px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.act{display:grid;place-items:center;background:none;border:none;border-radius:50%;width:38px;height:38px;color:var(--on-surface-dim);cursor:pointer;transition:all .28s var(--ease-spring);font-family:var(--f);font-size:.72rem;animation:actPop .4s var(--ease-spring) both}
+.act:hover{color:var(--on-surface);background:rgba(255,255,255,.06);transform:scale(1.12)}
+.act:active{background:rgba(255,255,255,.1);transform:scale(0.85)}
+@keyframes actPop{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+.act .material-icons-round{font-size:18px}
+
+#fps{display:none;flex-wrap:wrap;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--outline);border-radius:var(--radius-l);margin-bottom:6px}
+#fps.on{display:flex;animation:slideUp .2s var(--ease-standard)}
+@keyframes slideUp{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
+.fp{position:relative}
+.fp img{width:60px;height:60px;object-fit:cover;border-radius:var(--radius-m);border:1px solid var(--outline);display:block;background:var(--surface2)}
+.fp .fib{width:60px;height:60px;border-radius:var(--radius-m);background:var(--surface2);border:1px solid var(--outline);display:grid;place-items:center;color:var(--on-surface-dim)}
+.fp .fib .material-icons-round{font-size:22px}
+.fp .fn{display:block;font-size:.6rem;color:var(--on-surface-dim);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px;text-align:center}
+.fp .rx{position:absolute;top:-6px;right:-6px;background:var(--surface3);color:var(--on-surface-variant);border:1px solid var(--outline);border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:grid;place-items:center;z-index:2;font-family:var(--f);line-height:1;transition:transform .2s var(--ease-spring)}
+.fp .rx:active{transform:scale(.8)}
+
+.paste-badge{
+  position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  background:var(--primary-container);border:1px solid rgba(139,123,255,.3);
+  color:var(--primary);font-size:.68rem;font-weight:600;
+  padding:3px 10px;border-radius:50px;white-space:nowrap;
+  animation:badgePop .4s var(--ease-spring) both,badgeFade .3s ease 1.4s forwards;
+  pointer-events:none;
+}
+@keyframes badgePop{from{opacity:0;transform:translateX(-50%) scale(.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}
+@keyframes badgeFade{to{opacity:0}}
+
+.search-flag-row{display:flex;justify-content:center;margin-bottom:2px}
+.search-flag-chip{display:flex;align-items:center;gap:6px;padding:6px 15px;min-height:36px;border-radius:50px;background:var(--surface);border:1px solid var(--outline);color:var(--on-surface-variant);font-family:var(--f);font-size:.73rem;font-weight:500;cursor:pointer;transition:all .25s var(--ease-standard);user-select:none}
+.search-flag-chip:hover{background:var(--surface2);color:var(--on-surface)}
+.search-flag-chip:active{transform:scale(.95)}
+.search-flag-chip.forced{background:var(--primary-container);border-color:rgba(139,123,255,.35);color:var(--primary)}
+.search-flag-chip .material-icons-round{font-size:15px}
+
+.input-area{position:relative;z-index:10;padding:8px 12px calc(12px + var(--sab));flex-shrink:0;display:flex;flex-direction:column;gap:6px}
+.input-wrap{width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:6px}
+.gem-disclaimer{text-align:center;font-size:.7rem;color:var(--on-surface-dim);padding:0 8px;line-height:1.4;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.gem-disclaimer .material-icons-round{font-size:13px}
+.gem-disclaimer a{color:var(--accent-3);text-decoration:none}
+.input-pill{
+  display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--outline);
+  border-radius:var(--radius-xl);padding:2px;overflow:hidden;
+  transition:all .4s var(--ease-emphasized);
+  box-shadow:var(--shadow-pill);
+}
+.input-pill:focus-within{border-color:rgba(139,123,255,0.5);box-shadow:var(--shadow-pill-focus)}
+.input-top{display:flex;align-items:flex-start;gap:8px;padding:14px 16px 6px}
+.input-nyra-logo{width:26px;height:26px;flex-shrink:0;display:grid;place-items:center;overflow:hidden;margin-top:2px}
+#ui{flex:1;background:none;border:none;color:var(--on-surface);font-family:var(--f);font-size:.96rem;font-weight:400;outline:none;resize:none;max-height:130px;min-height:22px;line-height:1.5}
+#ui::-webkit-scrollbar{display:none}
+#ui::placeholder{color:var(--on-surface-dim);font-weight:400}
+.input-bottom{display:flex;align-items:center;justify-content:space-between;padding:6px 10px 10px;gap:8px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;min-height:44px}
+.input-left-btns{display:flex;align-items:center;gap:2px;position:relative}
+.input-right-btns{display:flex;align-items:center;gap:6px}
+.ipt-btn{background:none;border:none;cursor:pointer;color:var(--on-surface-variant);display:grid;place-items:center;width:var(--touch-min);height:var(--touch-min);border-radius:50%;transition:all .3s var(--ease-spring);flex-shrink:0}
+.ipt-btn:hover{background:rgba(255,255,255,.06)}
+.ipt-btn:active{background:rgba(255,255,255,.08);transform:scale(.85)}
+.ipt-btn .material-icons-round{font-size:21px}
+
+.tools-btn{display:flex;align-items:center;gap:6px;padding:9px 14px;min-height:var(--touch-min);border-radius:50px;background:none;border:1px solid var(--outline);color:var(--on-surface-variant);font-family:var(--f);font-size:.8rem;font-weight:500;cursor:pointer;transition:all .28s var(--ease-spring)}
+.tools-btn:hover{background:var(--surface2);color:var(--on-surface)}
+.tools-btn:active{transform:scale(.95)}
+.tools-btn.active-search{background:var(--primary-container);border-color:rgba(139,123,255,.35);color:var(--primary)}
+.tools-btn .material-icons-round{font-size:17px}
+#toolsMenu{position:fixed;min-width:240px;background:var(--surface2);border:1px solid var(--outline);border-radius:var(--radius-l);box-shadow:var(--shadow-menu);overflow:hidden;display:none;z-index:400}
+#toolsMenu.open{display:block;animation:mmIn .26s var(--ease-spring) both}
+.tm-item{display:flex;align-items:center;gap:12px;padding:13px 14px;min-height:var(--touch-min);color:var(--on-surface);cursor:pointer;font-family:var(--f);background:none;border:none;width:100%;text-align:left;transition:all .18s var(--ease-standard)}
+.tm-item:hover{background:rgba(255,255,255,.05)}
+.tm-item:active{transform:scale(.98)}
+.tm-item .material-icons-round{font-size:19px;color:var(--on-surface-variant)}
+.tm-info{flex:1}
+.tm-name{font-size:.86rem;font-weight:500}
+.tm-desc{font-size:.72rem;color:var(--on-surface-dim)}
+.tm-item.active .material-icons-round{color:var(--primary)}
+.tm-item.active .tm-name{color:var(--primary)}
+.tm-check{width:16px;height:16px;border-radius:4px;border:1px solid var(--outline);flex-shrink:0}
+.tm-item.active .tm-check{background:var(--primary);border-color:var(--primary);position:relative}
+.tm-item.active .tm-check::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#0a0a0d}
+
+.speed-chip{display:flex;align-items:center;gap:4px;background:none;border:1px solid var(--outline);border-radius:50px;padding:8px 14px;min-height:var(--touch-min);font-family:var(--f);font-size:.8rem;font-weight:500;color:var(--on-surface-variant);cursor:pointer;transition:all .32s var(--ease-spring);user-select:none;position:relative}
+.speed-chip:hover{background:var(--surface2);color:var(--on-surface)}
+.speed-chip:active{transform:scale(.94)}
+.speed-chip .material-icons-round{font-size:16px}
+#send-btn{width:40px;height:40px;border-radius:50%;border:1px solid rgba(139,123,255,.3);background:var(--primary-container);color:var(--primary);cursor:pointer;display:none;place-items:center;transition:all .35s var(--ease-spring)}
+#send-btn.show{display:grid}
+#send-btn:active{transform:scale(.78);background:rgba(139,123,255,.22)}
+#send-btn .material-icons-round{font-size:19px}
+#send-btn.stop-mode{background:rgba(255,140,133,.15);border-color:rgba(255,140,133,.3);color:var(--red)}
+#fi{display:none}
+
+#profileMenu{position:fixed;min-width:230px;background:var(--surface2);border:1px solid var(--outline);border-radius:var(--radius-l);box-shadow:var(--shadow-menu);overflow:hidden;display:none;z-index:400}
+#profileMenu.open{display:block;animation:mmIn .32s var(--ease-spring) both}
+.pm-items{padding:6px}
+.pm-item{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:var(--touch-min);border-radius:var(--radius-m);font-size:.9rem;font-weight:500;color:var(--on-surface);font-family:var(--f);background:none;border:none;width:100%;text-align:left;cursor:pointer;transition:all .18s var(--ease-standard)}
+.pm-item:hover{background:rgba(255,255,255,.06)}
+.pm-item:active{transform:scale(.98)}
+.pm-item.danger:active{background:rgba(255,140,133,.08)}
+.pm-item .material-icons-round{font-size:19px;opacity:.8}
+
+#modelMenu{position:fixed;min-width:270px;background:var(--surface2);border:1px solid var(--outline);border-radius:var(--radius-l);box-shadow:var(--shadow-menu);overflow:hidden;display:none;z-index:400}
+#modelMenu.open{display:block;animation:mmIn .27s var(--ease-spring) both}
+@keyframes mmIn{from{opacity:0;transform:scale(.94) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mm-items{padding:6px}
+.mm-item{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;min-height:var(--touch-min);border-radius:var(--radius-m);color:var(--on-surface-variant);cursor:pointer;font-family:var(--f);background:none;border:none;width:100%;text-align:left;transition:all .18s var(--ease-standard)}
+.mm-info{display:flex;flex-direction:column;gap:2px;flex:1}
+.mm-name{font-size:.9rem;font-weight:500;color:var(--on-surface)}
+.mm-desc{font-size:.72rem;color:var(--on-surface-dim);line-height:1.3}
+.mm-item:hover{background:rgba(255,255,255,.05)}
+.mm-item:active{transform:scale(.98)}
+.mm-item.active{color:var(--primary);background:var(--primary-container)}
+.mm-item .mm-check{font-size:17px;display:none;color:var(--primary)}
+.mm-item.active .mm-check{display:block}
+
+.sv{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;opacity:0;visibility:hidden;transition:all .28s var(--ease-standard);display:flex;align-items:center;justify-content:center;padding:16px}
+.sv.on{opacity:1;visibility:visible}
+.ss{width:100%;max-width:760px;height:min(600px,88dvh);background:var(--surface);border:1px solid var(--outline);border-radius:var(--radius-xl);display:flex;overflow:hidden;transform:scale(.94) translateY(10px);opacity:0;transition:all .4s var(--ease-emphasized);box-shadow:var(--shadow-card)}
+.sv.on .ss{transform:scale(1) translateY(0);opacity:1}
+.ss-tabs{width:210px;flex-shrink:0;background:var(--surface2);border-right:1px solid var(--outline-variant);padding:16px 10px;overflow-y:auto}
+.ss-tabs-title{font-family:var(--fd);font-size:1.02rem;font-weight:600;padding:6px 10px 16px;color:var(--on-surface)}
+.ss-tab{display:flex;align-items:center;gap:11px;padding:11px 12px;min-height:var(--touch-min);border-radius:var(--radius-m);color:var(--on-surface-variant);cursor:pointer;font-size:.85rem;font-weight:500;transition:all .22s var(--ease-standard);background:none;border:none;width:100%;text-align:left;margin-bottom:2px}
+.ss-tab:hover{background:var(--surface3);color:var(--on-surface)}
+.ss-tab:active{transform:scale(.97)}
+.ss-tab.active{background:var(--primary-container);color:var(--primary)}
+.ss-tab .material-icons-round{font-size:19px}
+.ss-panels{flex:1;display:flex;flex-direction:column;min-width:0}
+.ss-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 24px 12px;border-bottom:1px solid var(--outline-variant);flex-shrink:0}
+.ss-t{font-size:1rem;font-weight:600;font-family:var(--fd);color:var(--on-surface)}
+.ss-sub{font-size:.75rem;color:var(--on-surface-dim);font-weight:400;margin-top:2px}
+.ss-x{background:var(--surface2);border:1px solid var(--outline);border-radius:50%;width:38px;height:38px;display:grid;place-items:center;color:var(--on-surface-variant);cursor:pointer;transition:all .22s var(--ease-spring)}
+.ss-x:hover{background:var(--surface3);color:var(--on-surface)}
+.ss-x:active{transform:scale(.85)}
+.ss-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 24px}
+.ss-panel{display:none;animation:panelIn .32s var(--ease-standard) both}
+.ss-panel.active{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ss-model-list{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.ss-model-card{padding:14px 16px;border-radius:var(--radius-l);background:var(--surface2);border:1px solid var(--outline-variant);cursor:pointer;transition:all .22s var(--ease-standard)}
+.ss-model-card:hover{border-color:rgba(139,123,255,.3)}
+.ss-model-card:active{transform:scale(.985)}
+.ss-model-card.active{background:var(--primary-container);border-color:rgba(139,123,255,.35)}
+.ss-m-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.ss-m-name{font-size:.9rem;font-weight:500;color:var(--on-surface)}
+.ss-m-name i{font-size:16px;color:var(--primary);margin-left:6px;display:none;vertical-align:middle}
+.ss-model-card.active .ss-m-name i{display:inline}
+.ss-m-desc{font-size:.76rem;color:var(--on-surface-dim);line-height:1.45}
+.ss-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:var(--radius-l);background:var(--surface2);border:1px solid var(--outline-variant);margin-bottom:8px}
+.ss-row-tap{cursor:pointer;transition:all .2s var(--ease-standard)}
+.ss-row-tap:hover{background:var(--surface3)}
+.ss-row-tap:active{transform:scale(.99)}
+.ss-row-del:hover{background:rgba(255,140,133,.07);border-color:rgba(255,140,133,.25)}
+.ss-col{padding:14px 16px;border-radius:var(--radius-l);background:var(--surface2);border:1px solid var(--outline-variant);margin-bottom:8px}
+.ss-ri{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.ss-rt{font-size:.88rem;font-weight:400;color:var(--on-surface)}
+.ss-rd{font-size:.75rem;color:var(--on-surface-dim);font-weight:400;line-height:1.4}
+.ss-rd strong{color:var(--red);font-weight:600}
+.tgl{position:relative;flex-shrink:0;cursor:pointer}
+.tgl input{position:absolute;opacity:0;width:0;height:0}
+.tgl-tr{display:block;width:48px;height:29px;background:var(--surface3);border:2px solid var(--outline);border-radius:50px;position:relative;transition:all .32s var(--ease-spring)}
+.tgl input:checked~.tgl-tr{background:var(--primary);border-color:var(--primary)}
+.tgl-th{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:var(--on-surface-dim);box-shadow:0 1px 3px rgba(0,0,0,.3);transition:all .32s var(--ease-spring)}
+.tgl input:checked~.tgl-tr .tgl-th{left:21px;background:#0a0a0d;width:22px;height:22px;top:1.5px}
+.sld-w{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sld{-webkit-appearance:none;appearance:none;width:100px;height:4px;border-radius:2px;background:var(--surface3);outline:none;cursor:pointer}
+.sld::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 0 0 3px rgba(139,123,255,.2);transition:transform .2s var(--ease-spring)}
+.sld::-webkit-slider-thumb:active{transform:scale(1.2)}
+.sld-v{font-size:.8rem;font-weight:500;color:var(--primary);min-width:26px;text-align:right}
+.sta{width:100%;background:var(--bg);border:1px solid var(--outline);border-radius:var(--radius-m);color:var(--on-surface);font-family:var(--f);font-size:.88rem;font-weight:400;line-height:1.5;padding:12px;resize:none;outline:none;transition:border-color .18s;-webkit-appearance:none}
+.sta:focus{border-color:var(--primary)}
+.ss-ver{font-size:.7rem;color:var(--on-surface-dim);font-weight:400;text-align:center;padding-top:6px}
+
+.theme-selector-label{
+  font-size:.82rem;font-weight:500;color:var(--on-surface);
+  margin-bottom:10px;display:flex;align-items:center;gap:7px;
+}
+.theme-selector-label .material-icons-round{font-size:18px;color:var(--primary)}
+.theme-selector{
+  display:flex;gap:5px;padding:5px;
+  background:var(--surface3);border-radius:var(--radius-l);
+  margin-bottom:0;
+}
+.theme-opt{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 10px;min-height:40px;border-radius:var(--radius-m);border:none;
+  background:none;color:var(--on-surface-variant);font-family:var(--f);
+  font-size:.8rem;font-weight:500;cursor:pointer;
+  transition:all .28s var(--ease-spring);
+  user-select:none;
+}
+.theme-opt .material-icons-round{font-size:17px;flex-shrink:0}
+.theme-opt:hover{background:var(--surface2);color:var(--on-surface)}
+.theme-opt:active{transform:scale(.94)}
+.theme-opt.active{
+  background:var(--surface);color:var(--primary);
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  border:1px solid var(--outline);
+}
+
+/* [NEW] Sezione "Altro da Aura" — griglia di card servizi */
+.aura-services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.aura-service-card{
+  display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--radius-l);
+  background:var(--surface2);border:1px solid var(--outline-variant);text-decoration:none;color:inherit;
+  transition:transform .3s var(--ease-spring),border-color .22s,box-shadow .3s var(--ease-standard);cursor:pointer;
+}
+.aura-service-card:hover{transform:translateY(-3px) scale(1.02);border-color:rgba(139,123,255,.4);box-shadow:0 10px 26px rgba(0,0,0,.25)}
+.aura-service-card:active{transform:scale(.97)}
+.asc-ico{width:38px;height:38px;border-radius:var(--radius-m);background:var(--primary-container);display:grid;place-items:center;flex-shrink:0;overflow:hidden}
+.asc-ico img{width:100%;height:100%;object-fit:contain;display:block}
+.asc-name{font-size:.88rem;font-weight:600;color:var(--on-surface)}
+.asc-desc{font-size:.74rem;color:var(--on-surface-dim);line-height:1.5}
+
+/* ============ MOBILE SETTINGS SELECTOR ============ */
+.ss-mobile-selector{display:none;position:relative;padding:10px;flex-shrink:0}
+.ss-mobile-select-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px 12px;background:var(--surface3);border:1px solid var(--outline-variant);border-radius:var(--radius-m);color:var(--on-surface);cursor:pointer;font-family:var(--f);font-size:.85rem;font-weight:500;transition:all .22s var(--ease-standard)}
+.ss-mobile-select-btn:hover{background:var(--surface2)}
+.ss-mobile-select-btn:active{transform:scale(.98)}
+.ss-mobile-select-btn .material-icons-round{font-size:20px;flex-shrink:0;transition:transform .3s var(--ease-spring)}
+.ss-mobile-selector.open .ss-mobile-select-btn .material-icons-round{transform:rotate(180deg)}
+.ss-mobile-select-menu{position:fixed;background:var(--surface2);border:1px solid var(--outline);border-radius:var(--radius-m);box-shadow:var(--shadow-menu);z-index:999;display:none;flex-direction:column;padding:4px;max-height:calc(100dvh - 200px);overflow-y:auto}
+.ss-mobile-selector.open .ss-mobile-select-menu{display:flex}
+.ss-mobile-option{display:flex;align-items:center;padding:11px 12px;min-height:var(--touch-min);background:none;border:none;color:var(--on-surface-variant);cursor:pointer;font-family:var(--f);font-size:.85rem;font-weight:400;transition:all .18s var(--ease-standard);border-radius:var(--radius-s);width:100%;text-align:left;margin-bottom:0;white-space:nowrap}
+.ss-mobile-option:hover{background:var(--surface3);color:var(--on-surface)}
+.ss-mobile-option:active{transform:scale(.97)}
+
+@media (max-width:640px){
+  .ss{flex-direction:column;height:92dvh;max-width:100%}
+  .ss-tabs{width:100%;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;border-right:none;border-bottom:1px solid var(--outline-variant);padding:0}
+  .ss-tabs-title{display:block;padding:12px 16px;font-family:var(--fd);font-size:.95rem;font-weight:600;color:var(--on-surface)}
+  .ss-mobile-selector{display:flex}
+  .ss-tab{display:none!important}
+  .theme-opt span.theme-label{display:none}
+  .aura-services-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+}
+
+#memPanel{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:550;opacity:0;visibility:hidden;transition:all .28s var(--ease-standard);display:flex;align-items:center;justify-content:center;padding:16px}
+#memPanel.on{opacity:1;visibility:visible}
+.mem-sheet{width:100%;max-width:480px;max-height:80dvh;background:var(--surface);border:1px solid var(--outline);border-radius:var(--radius-xl);transform:scale(.94) translateY(10px);opacity:0;transition:all .4s var(--ease-emphasized);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-card)}
+#memPanel.on .mem-sheet{transform:scale(1) translateY(0);opacity:1}
+.mem-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--outline-variant)}
+.mem-hdr-l{display:flex;align-items:center;gap:10px}
+.mem-ico{width:36px;height:36px;border-radius:var(--radius-m);background:var(--primary-container);display:grid;place-items:center;color:var(--primary)}
+.mem-ico .material-icons-round{font-size:20px}
+.mem-title{font-size:.95rem;font-weight:600;font-family:var(--fd);color:var(--on-surface)}
+.mem-count{font-size:.73rem;color:var(--on-surface-dim)}
+.mem-x{background:var(--surface2);border:1px solid var(--outline);border-radius:50%;width:38px;height:38px;display:grid;place-items:center;color:var(--on-surface-variant);cursor:pointer;transition:all .2s var(--ease-spring)}
+.mem-x:hover{background:var(--surface3)}
+.mem-x:active{transform:scale(.85)}
+#memList{flex:1;overflow-y:auto;padding:10px 16px}
+.mem-item{display:flex;align-items:flex-start;gap:10px;padding:14px;border-radius:var(--radius-l);background:var(--surface2);border:1px solid var(--outline-variant);margin-bottom:6px}
+.mem-item-text{flex:1;font-size:.88rem;font-weight:400;color:var(--on-surface);line-height:1.5}
+.mem-item-date{font-size:.68rem;color:var(--on-surface-dim);margin-top:4px}
+.mem-del{background:none;border:none;color:var(--on-surface-dim);cursor:pointer;padding:8px;width:38px;height:38px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;transition:all .2s var(--ease-spring)}
+.mem-del:hover{background:rgba(255,140,133,.1);color:var(--red)}
+.mem-del:active{transform:scale(.85)}
+.mem-empty{text-align:center;color:var(--on-surface-dim);font-size:.88rem;padding:40px 10px;line-height:1.6}
+.mem-ftr{padding:12px 16px;border-top:1px solid var(--outline-variant);flex-shrink:0}
+.mem-clear{width:100%;background:rgba(255,140,133,.08);border:1px solid rgba(255,140,133,.2);border-radius:var(--radius-l);color:var(--red);font-family:var(--f);font-size:.88rem;font-weight:500;padding:13px;min-height:var(--touch-min);cursor:pointer;transition:all .2s var(--ease-standard)}
+.mem-clear:hover{background:rgba(255,140,133,.15)}
+.mem-clear:active{transform:scale(.98)}
+
+.mv{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;display:flex;justify-content:center;align-items:center;opacity:0;visibility:hidden;transition:all .28s var(--ease-standard);padding:16px}
+.mv.on{opacity:1;visibility:visible}
+.msh{width:100%;max-width:420px;background:var(--surface2);border:1px solid var(--outline);border-radius:var(--radius-xl);padding:24px 24px 26px;transform:scale(.92) translateY(14px);transition:transform .4s var(--ease-emphasized);box-shadow:var(--shadow-card)}
+.mv.on .msh{transform:scale(1) translateY(0)}
+.m-badge{width:48px;height:48px;border-radius:var(--radius-m);display:grid;place-items:center;font-size:1.5rem;margin-bottom:16px}
+.m-badge.wn{background:rgba(255,167,38,.12)}
+.m-badge.adx{background:var(--primary-container)}
+.msh h2{font-size:clamp(1rem,4vw,1.1rem);font-weight:500;font-family:var(--fd);margin-bottom:10px;color:var(--on-surface)}
+.msh p{font-size:.9rem;font-weight:400;color:var(--on-surface-variant);line-height:1.6;margin-bottom:6px}
+.msh p strong{color:var(--on-surface);font-weight:500}
+.m-btns{display:flex;gap:10px;margin-top:22px}
+.m-btn{flex:1;padding:13px;min-height:var(--touch-min);border-radius:50px;border:none;font-family:var(--f);font-size:.88rem;font-weight:500;cursor:pointer;text-align:center;text-decoration:none;transition:all .22s var(--ease-standard)}
+.m-btn:active{transform:scale(.96)}
+.m-ghost{background:var(--surface3);color:var(--on-surface-variant);border:1px solid var(--outline)}
+.m-ghost:hover{background:var(--outline);color:var(--on-surface)}
+.m-acc{background:var(--primary-container);color:var(--primary);border:1px solid rgba(139,123,255,.2)}
+.m-acc:hover{background:rgba(139,123,255,.22)}
+
+#v4Modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:650;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
+#v4Modal.on{opacity:1;visibility:visible}
+.v4-sheet{width:100%;max-width:460px;max-height:88dvh;overflow-y:auto;background:var(--surface);border:1px solid var(--outline);border-radius:var(--radius-xl);padding:28px 26px 26px;transform:scale(.92) translateY(14px);transition:transform .46s var(--ease-emphasized),opacity .3s ease;box-shadow:var(--shadow-card);opacity:0}
+#v4Modal.on .v4-sheet{transform:scale(1) translateY(0);opacity:1}
+.v4-sheet::-webkit-scrollbar{width:4px}
+.v4-sheet::-webkit-scrollbar-thumb{background:var(--outline);border-radius:2px}
+.v4-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.v4-logo-row img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--surface3)}
+.v4-logo-row span{font-family:var(--fd);font-size:1rem;font-weight:700;background:var(--accent-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.v4-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:50px;margin-bottom:12px;background:var(--primary-container);border:1px solid rgba(139,123,255,.3);color:var(--primary);font-size:.72rem;font-weight:700;letter-spacing:.04em}
+.v4-title{font-family:var(--fd);font-size:clamp(1.25rem,5vw,1.55rem);font-weight:600;margin-bottom:8px;line-height:1.2;color:var(--on-surface)}
+.v4-subtitle{font-size:.88rem;color:var(--on-surface-variant);line-height:1.55;margin-bottom:22px}
+.v4-feats{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.v4-feat{display:flex;align-items:flex-start;gap:13px;padding:13px 15px;border-radius:var(--radius-l);background:var(--surface2);border:1px solid var(--outline-variant);transition:border-color .15s}
+.v4-feat:hover{border-color:rgba(139,123,255,.25)}
+.v4-feat-ico{width:36px;height:36px;flex-shrink:0;border-radius:var(--radius-m);background:var(--primary-container);display:grid;place-items:center;color:var(--primary)}
+.v4-feat-ico .material-icons-round{font-size:19px}
+.v4-feat-body{flex:1}
+.v4-feat-title{font-size:.87rem;font-weight:600;color:var(--on-surface);margin-bottom:3px}
+.v4-feat-desc{font-size:.75rem;color:var(--on-surface-variant);line-height:1.5}
+.v4-avanti{width:100%;padding:14px;min-height:var(--touch-min);border-radius:50px;background:var(--accent-grad);border:none;color:#fff;font-family:var(--f);font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .2s var(--ease-spring);letter-spacing:.02em}
+.v4-avanti:hover{opacity:.9;transform:translateY(-1px)}
+.v4-avanti:active{transform:scale(.96);opacity:1}
+
+#toast{position:fixed;bottom:calc(88px + var(--sab));left:50%;transform:translateX(-50%) translateY(24px);background:var(--surface3);border:1px solid var(--outline);border-radius:var(--radius-m);padding:12px 20px;font-size:.86rem;font-weight:400;color:var(--on-surface);opacity:0;transition:all .35s var(--ease-standard);pointer-events:none;white-space:nowrap;z-index:999;box-shadow:var(--shadow-toast);max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+#scrollBtn{position:fixed;bottom:calc(90px + var(--sab));right:16px;width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--outline);display:none;place-items:center;cursor:pointer;color:var(--on-surface-variant);z-index:50;box-shadow:var(--shadow-scroll);transition:all .25s var(--ease-spring)}
+#scrollBtn.show{display:grid}
+#scrollBtn:hover{color:var(--on-surface);background:var(--surface3)}
+#scrollBtn:active{transform:scale(.85)}
+#scrollBtn .material-icons-round{font-size:22px}
+
+/* ================================================================
+   NAVBAR SECONDARIA — DRAWER FILE & MEDIA DELLA CHAT
+================================================================ */
+#mediaDrawer{
+  position:fixed;top:12px;bottom:12px;right:12px;width:320px;max-width:calc(100vw - 24px);
+  background:var(--sidebar-bg);border:1px solid var(--outline);border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-card);
+  transform:translateX(calc(100% + 24px));opacity:0;
+  transition:transform .5s var(--ease-emphasized),opacity .38s ease;
+  z-index:210;display:flex;flex-direction:column;overflow:hidden;
+}
+#mediaDrawer.open{transform:translateX(0);opacity:1}
+.md-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px;flex-shrink:0;border-bottom:1px solid var(--outline-variant)}
+.md-title{font-family:var(--fd);font-size:1rem;font-weight:600;color:var(--on-surface);display:flex;align-items:center;gap:8px}
+.md-title .material-icons-round{font-size:19px;color:var(--primary)}
+.md-x{background:var(--surface2);border:1px solid var(--outline);border-radius:50%;width:36px;height:36px;display:grid;place-items:center;color:var(--on-surface-variant);cursor:pointer;transition:all .2s var(--ease-spring)}
+.md-x:hover{background:var(--surface3);color:var(--on-surface)}
+.md-x:active{transform:scale(.85)}
+.md-tabs{display:flex;gap:6px;padding:12px 14px 8px;flex-shrink:0}
+.md-tab{flex:1;padding:8px 10px;min-height:40px;border-radius:50px;background:var(--surface2);border:1px solid var(--outline-variant);color:var(--on-surface-variant);font-family:var(--f);font-size:.78rem;font-weight:500;cursor:pointer;transition:all .22s var(--ease-standard);display:flex;align-items:center;justify-content:center;gap:5px}
+.md-tab .material-icons-round{font-size:15px}
+.md-tab:hover{background:var(--surface3);color:var(--on-surface)}
+.md-tab:active{transform:scale(.96)}
+.md-tab.active{background:var(--primary-container);border-color:rgba(139,123,255,.35);color:var(--primary)}
+.md-body{flex:1;overflow-y:auto;padding:8px 14px 16px}
+.md-body::-webkit-scrollbar{width:4px}
+.md-body::-webkit-scrollbar-thumb{background:var(--outline);border-radius:2px}
+.md-empty{text-align:center;color:var(--on-surface-dim);font-size:.85rem;padding:50px 14px;line-height:1.6}
+.md-empty .material-icons-round{font-size:34px;opacity:.4;display:block;margin:0 auto 10px}
+
+.md-media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.md-media-item{border-radius:var(--radius-m);overflow:hidden;border:1px solid var(--outline);aspect-ratio:1;background:var(--surface2);cursor:pointer;transition:transform .25s var(--ease-spring)}
+.md-media-item:hover{transform:scale(1.03)}
+.md-media-item:active{transform:scale(.95)}
+.md-media-item img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s ease}
+.md-media-item img.loaded{opacity:1}
+
+.md-file-item{display:flex;align-items:center;gap:10px;padding:11px 12px;min-height:var(--touch-min);border-radius:var(--radius-m);background:var(--surface2);border:1px solid var(--outline-variant);margin-bottom:8px;cursor:pointer;transition:all .2s var(--ease-standard)}
+.md-file-item:hover{border-color:rgba(139,123,255,.3)}
+.md-file-item:active{transform:scale(.98)}
+.md-file-ico{width:34px;height:34px;border-radius:var(--radius-s);background:var(--primary-container);color:var(--primary);display:grid;place-items:center;flex-shrink:0}
+.md-file-ico .material-icons-round{font-size:17px}
+.md-file-info{flex:1;min-width:0}
+.md-file-name{font-size:.82rem;font-weight:500;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.md-file-meta{font-size:.68rem;color:var(--on-surface-dim);text-transform:uppercase;letter-spacing:.03em}
+
+@media (max-width:480px){
+  #sidebar,#mediaDrawer{top:8px;bottom:8px;left:8px}
+  #mediaDrawer{left:auto;right:8px}
+  .chat-inner{padding:20px 4px 0}
+  .h-chat-name{max-width:130px}
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="glow-backdrop"></div>
+  <div id="ov" onclick="closeSB()"></div>
+
+  <div id="sidebar">
+    <div class="sb-top">
+      <button class="sb-brand" onclick="toggleCollapse()" style="background:none;border:none;padding:0;cursor:pointer;" title="Espandi">
+        <div class="sb-logo"><img src="/images/nyra-nobg.png" alt="Nyra" onerror="this.style.display='none'"/></div>
+        <span class="sb-title">Nyra</span>
+      </button>
+      <button class="sb-collapse-btn" onclick="toggleCollapse()" title="Comprimi">
+        <span class="material-icons-round">unfold_less</span>
+      </button>
+    </div>
+
+    <div class="sb-newchat-row">
+      <button class="sb-newchat" onclick="newChat()">
+        <span class="material-icons-round">add_comment</span><span class="lbl">Nuova chat</span>
+      </button>
+      <button class="sb-tempchat-btn" onclick="newTempChat()" title="Nuova chat temporanea (non salvata)">
+        <span class="material-icons-round">visibility_off</span>
+      </button>
+    </div>
+
+    <div class="sb-nav">
+      <button class="sb-nav-item" onclick="toggleChatSearch()">
+        <span class="material-icons-round">search</span><span class="lbl">Cerca nelle chat</span>
+      </button>
+    </div>
+    <div class="sb-search-box" id="sbSearchBox">
+      <span class="material-icons-round">search</span>
+      <input type="text" id="chatSearchInput" placeholder="Cerca conversazioni..." oninput="renderList()"/>
+    </div>
+
+    <div class="sb-sec-label">Cronologia</div>
+    <ul id="chatList"></ul>
+
+    <div class="sb-bottom">
+      <div class="don-strip" id="donStrip">
+        <div class="don-strip-head">
+          <span class="don-strip-title">
+            <span class="material-icons-round" style="font-size:15px">favorite</span>
+            Supporta Nyra
+          </span>
+          <button class="don-strip-x" onclick="closeDonationStrip()" title="Chiudi">
+            <span class="material-icons-round" style="font-size:18px">close</span>
+          </button>
+        </div>
+        <p class="don-strip-desc">Nyra è gratuita per tutti. Se la trovi utile, anche una piccola donazione ci aiuta tantissimo a migliorarla!</p>
+        <a href="https://aurastudioitalia.it/dona" target="_blank" rel="noopener" class="don-strip-btn">☕ Dona ora</a>
+      </div>
+
+      <div class="sb-profile-row" onclick="togProfileMenu()">
+        <div class="sb-av" id="hdrAv">
+          <img id="hdrAvImg" src="" alt="" style="display:none"/>
+          <span id="hdrAvLtr">N</span>
+        </div>
+        <div class="sb-prof-info">
+          <span class="sb-prof-name" id="pmName">Utente</span>
+          <span class="sb-prof-sub">Account Aura</span>
+        </div>
+        <button class="sb-settings-gear" onclick="event.stopPropagation();openSett()" title="Impostazioni">
+          <span class="material-icons-round">tune</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileMenu">
+    <div class="pm-items">
+      <button class="pm-item" onclick="openSett();closeProfileMenu()">
+        <span class="material-icons-round">tune</span>Impostazioni
+      </button>
+      <button class="pm-item" onclick="openMemPanel();closeProfileMenu()">
+        <span class="material-icons-round">psychology</span>Memoria
+      </button>
+      <button class="pm-item danger" onclick="doLogout()">
+        <span class="material-icons-round">logout</span>Esci
+      </button>
+    </div>
+  </div>
+
+  <div class="main-col" id="mainCol">
+    <header>
+      <!-- bottone Apri menu - visibile solo da mobile -->
+      <button class="h-menu-toggle" id="mobileMenuBtn" onclick="togSB()" title="Apri menu">
+        <span class="material-icons-round" id="sbToggleIcon">menu</span>
+      </button>
+      <div class="h-center">
+        <div class="h-chat-name" id="hdrName">Nyra</div>
+      </div>
+      <!-- bottone Media & File chat, in alto a destra -->
+      <button class="h-media-toggle" id="mediaToggleBtn" onclick="toggleMediaDrawer()" title="File e media della chat">
+        <span class="material-icons-round">perm_media</span>
+      </button>
+    </header>
+
+    <div id="chat">
+      <div id="welcomeWrap"></div>
+      <div class="chat-inner" id="chatInner"></div>
+      <div class="chat-spacer"></div>
+    </div>
+
+    <button id="scrollBtn" onclick="forceScrollBottom()">
+      <span class="material-icons-round">keyboard_arrow_down</span>
+    </button>
+
+    <div class="input-area">
+      <div class="input-wrap">
+        <div class="search-flag-row">
+          <button class="search-flag-chip" id="searchFlagChip" onclick="toggleWebSearch()" title="Forza la ricerca sul web per il prossimo messaggio">
+            <span class="material-icons-round" id="searchFlagIcon">travel_explore</span>
+            <span id="searchFlagLabel">Ricerca web: Auto</span>
+          </button>
+        </div>
+
+        <div id="fps" style="position:relative"></div>
+
+        <div class="input-pill">
+          <div class="input-top">
+            <div class="input-nyra-logo" id="inputLogo"></div>
+            <textarea id="ui" placeholder="Chiedi a Nyra..." rows="1"
+              oninput="onInp(this)"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+          </div>
+          <div class="input-bottom">
+            <div class="input-left-btns">
+              <label for="fi" class="ipt-btn" title="Allega file">
+                <span class="material-icons-round">add</span>
+              </label>
+              <input type="file" id="fi" multiple accept="image/*,.txt,.csv,.md,.pdf"/>
+              <button class="tools-btn" id="toolsBtn" onclick="togToolsMenu(event)">
+                <span class="material-icons-round">tune</span>Strumenti
+              </button>
+            </div>
+            <div class="input-right-btns">
+              <div class="speed-chip" onclick="togModelMenu(event)">
+                <span class="material-icons-round">model_training</span>
+                <span id="chipModelName">Modello</span>
+              </div>
+              <button id="send-btn" onclick="handleSendBtn()">
+                <span class="material-icons-round" id="send-icon">arrow_upward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gem-disclaimer">
+          <span class="material-icons-round">lock</span>
+          Nyra è un'AI e può commettere errori. <a href="https://privacy.aurastudioitalia.it/privacypolicy" onclick="return false">Privacy su Aura</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DRAWER SECONDARIO — FILE & MEDIA DELLA CHAT ============ -->
+  <div id="mediaDrawer">
+    <div class="md-hdr">
+      <div class="md-title"><span class="material-icons-round">perm_media</span>File &amp; Media</div>
+      <button class="md-x" onclick="toggleMediaDrawer(false)"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="md-tabs">
+      <button class="md-tab active" id="mdTabMedia" onclick="switchMediaTab('media')">
+        <span class="material-icons-round">image</span>Media
+      </button>
+      <button class="md-tab" id="mdTabFiles" onclick="switchMediaTab('files')">
+        <span class="material-icons-round">description</span>File
+      </button>
+    </div>
+    <div class="md-body" id="mdBody"></div>
+  </div>
+
+</div>
+
+<div id="toolsMenu">
+  <div class="tm-item" id="tmSearch" onclick="toggleWebSearch()">
+    <span class="material-icons-round">travel_explore</span>
+    <div class="tm-info">
+      <div class="tm-name">Cerca sul Web</div>
+      <div class="tm-desc">Forza Nyra a cercare fonti aggiornate online</div>
+    </div>
+    <div class="tm-check"></div>
+  </div>
+</div>
+
+<div id="modelMenu">
+  <div class="mm-items">
+    <button class="mm-item" data-model="openai/gpt-5-nano"
+      onclick="event.stopPropagation();selectModel('openai/gpt-5-nano','GPT-5 Nano');closeModelMenu()">
+      <div class="mm-info">
+        <span class="mm-name">GPT-5 Nano</span>
+        <span class="mm-desc">Versatile e velocissimo per risposte quotidiane.</span>
+      </div>
+      <span class="material-icons-round mm-check">check_circle</span>
+    </button>
+    <button class="mm-item" data-model="google/gemma-4-31b-it"
+      onclick="event.stopPropagation();selectModel('google/gemma-4-31b-it','Gemma 4 (31B)');closeModelMenu()">
+      <div class="mm-info">
+        <span class="mm-name">Gemma 4 (31B)</span>
+        <span class="mm-desc">Potente nel ragionamento e nella scrittura creativa.</span>
+      </div>
+      <span class="material-icons-round mm-check">check_circle</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ SETTINGS MODAL ============ -->
+<div class="sv" id="sv" onclick="if(event.target===this)closeSett()">
+  <div class="ss">
+    <div class="ss-tabs">
+      <div class="ss-tabs-title">Impostazioni</div>
+      <div class="ss-mobile-selector" id="ssMobileSelector">
+        <button class="ss-mobile-select-btn" onclick="togSsMobileMenu(event)">
+          <span id="ssMobileSelectLabel">Generale</span>
+          <span class="material-icons-round">expand_more</span>
+        </button>
+        <div class="ss-mobile-select-menu">
+          <button class="ss-mobile-option" onclick="switchSettTab('generale');togSsMobileMenu()">Generale</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('modelli');togSsMobileMenu()">Intelligenza</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('aspetto');togSsMobileMenu()">Chat &amp; Aspetto</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('istruzioni');togSsMobileMenu()">Istruzioni</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('privacy');togSsMobileMenu()">Privacy &amp; Dati</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('dati');togSsMobileMenu()">Gestione Dati</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('altro');togSsMobileMenu()">Altro da Aura</button>
+          <button class="ss-mobile-option" onclick="switchSettTab('info');togSsMobileMenu()">Informazioni</button>
+        </div>
+      </div>
+      <button class="ss-tab active" data-tab="generale" onclick="switchSettTab('generale')">
+        <span class="material-icons-round">tune</span>Generale
+      </button>
+      <button class="ss-tab" data-tab="modelli" onclick="switchSettTab('modelli')">
+        <span class="material-icons-round">model_training</span>Intelligenza
+      </button>
+      <button class="ss-tab" data-tab="aspetto" onclick="switchSettTab('aspetto')">
+        <span class="material-icons-round">palette</span>Chat &amp; Aspetto
+      </button>
+      <button class="ss-tab" data-tab="istruzioni" onclick="switchSettTab('istruzioni')">
+        <span class="material-icons-round">edit_note</span>Istruzioni
+      </button>
+      <button class="ss-tab" data-tab="privacy" onclick="switchSettTab('privacy')">
+        <span class="material-icons-round">shield</span>Privacy &amp; Dati
+      </button>
+      <button class="ss-tab" data-tab="dati" onclick="switchSettTab('dati')">
+        <span class="material-icons-round">storage</span>Gestione Dati
+      </button>
+      <button class="ss-tab" data-tab="altro" onclick="switchSettTab('altro')">
+        <span class="material-icons-round">apps</span>Altro da Aura
+      </button>
+      <button class="ss-tab" data-tab="info" onclick="switchSettTab('info')">
+        <span class="material-icons-round">info</span>Informazioni
+      </button>
+    </div>
+    <div class="ss-panels">
+      <div class="ss-hdr">
+        <div>
+          <div class="ss-t" id="ssPanelTitle">Generale</div>
+          <div class="ss-sub" id="ssPanelSub">Preferenze principali di Nyra</div>
+        </div>
+        <button class="ss-x" onclick="closeSett()"><span class="material-icons-round">close</span></button>
+      </div>
+      <div class="ss-body">
+        <div class="ss-panel active" data-panel="generale">
+          <div class="ss-col">
+            <div class="ss-row" style="background:none;border:none;padding:6px 2px;margin-bottom:8px">
+              <div class="ss-ri"><span class="ss-rt">Chat temporanee predefinite</span><span class="ss-rd">Ogni nuova chat creata sarà temporanea per impostazione predefinita</span></div>
+              <label class="tgl"><input type="checkbox" id="s-tempdefault" onchange="saveSett()"><span class="tgl-tr"><span class="tgl-th"></span></span></label>
+            </div>
+            <div class="ss-rd" style="padding:0 2px">
+              ⚠️ Le chat temporanee <strong>non vengono salvate</strong> sui server di Aura e non sono recuperabili una volta chiusa la conversazione.
+              <strong>Attenzione: questo NON equivale a una crittografia end-to-end (E2EE)</strong>.
+            </div>
+          </div>
+          <div class="ss-row">
+            <div class="ss-ri"><span class="ss-rt">Ricerca sul web di default</span><span class="ss-rd">Attiva lo strumento di ricerca forzata su ogni nuova chat</span></div>
+            <label class="tgl"><input type="checkbox" id="s-searchdefault" onchange="saveSett()"><span class="tgl-tr"><span class="tgl-th"></span></span></label>
+          </div>
+          <div class="ss-row ss-row-tap" onclick="openMemPanel()">
+            <div class="ss-ri"><span class="ss-rt">Gestisci Memoria</span><span class="ss-rd">Visualizza e rimuovi le cose che Nyra ricorda</span></div>
+            <span class="material-icons-round" style="color:var(--primary);font-size:20px">psychology</span>
+          </div>
+          <div class="ss-ver">Nyra · v4.2</div>
+        </div>
+
+        <div class="ss-panel" data-panel="modelli">
+          <div class="ss-model-list">
+            <div class="ss-model-card" id="m-gpt" onclick="selectModel('openai/gpt-5-nano','GPT-5 Nano')">
+              <div class="ss-m-top"><span class="ss-m-name">GPT-5 Nano <i class="material-icons-round">check_circle</i></span></div>
+              <div class="ss-m-desc">Versatile e velocissimo. Ideale per conversazioni quotidiane, traduzioni e risposte rapide.</div>
+            </div>
+            <div class="ss-model-card" id="m-gemma" onclick="selectModel('google/gemma-4-31b-it','Gemma 4 (31B)')">
+              <div class="ss-m-top"><span class="ss-m-name">Gemma 4 (31B) <i class="material-icons-round">check_circle</i></span></div>
+              <div class="ss-m-desc">Potente nel ragionamento logico e nella scrittura creativa. Consigliato per coding e analisi complesse.</div>
+            </div>
+          </div>
+          <div class="ss-col">
+            <div class="ss-row" style="background:none;border:none;padding:6px 2px;margin-bottom:0">
+              <div class="ss-ri"><span class="ss-rt">Creatività</span><span class="ss-rd">0 = precisa e diretta · 1 = fantasiosa</span></div>
+              <div class="sld-w">
+                <input type="range" class="sld" id="s-tmp" min="0" max="1" step="0.1" value="0.7"
+                  oninput="document.getElementById('s-tv').textContent=parseFloat(this.value).toFixed(1);saveSett()">
+                <span class="sld-v" id="s-tv">0.7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ss-panel" data-panel="aspetto">
+          <div class="ss-col">
+            <div class="theme-selector-label">
+              <span class="material-icons-round">palette</span>Tema dell'interfaccia
+            </div>
+            <div class="theme-selector" id="themeSelector">
+              <button class="theme-opt" data-theme-val="dark" onclick="applyTheme('dark')">
+                <span class="material-icons-round">dark_mode</span>
+                <span class="theme-label">Scuro</span>
+              </button>
+              <button class="theme-opt" data-theme-val="light" onclick="applyTheme('light')">
+                <span class="material-icons-round">light_mode</span>
+                <span class="theme-label">Chiaro</span>
+              </button>
+              <button class="theme-opt" data-theme-val="system" onclick="applyTheme('system')">
+                <span class="material-icons-round">brightness_auto</span>
+                <span class="theme-label">Sistema</span>
+              </button>
+            </div>
+          </div>
+          <div class="ss-row">
+            <div class="ss-ri"><span class="ss-rt">Animazione parole</span><span class="ss-rd">Dissolvenza graduale del testo nelle risposte</span></div>
+            <label class="tgl"><input type="checkbox" id="s-tw" checked onchange="saveSett()"><span class="tgl-tr"><span class="tgl-th"></span></span></label>
+          </div>
+          <div class="ss-row">
+            <div class="ss-ri"><span class="ss-rt">Suggerimenti nella home</span><span class="ss-rd">Mostra chip di esempio nella schermata iniziale</span></div>
+            <label class="tgl"><input type="checkbox" id="s-suggest" checked onchange="saveSett()"><span class="tgl-tr"><span class="tgl-th"></span></span></label>
+          </div>
+          <!-- autorizzazione salvataggio automatico in Aura Docs -->
+          <div class="ss-row">
+            <div class="ss-ri"><span class="ss-rt">Salvataggio automatico in Aura Docs</span><span class="ss-rd">Autorizza Nyra a salvare i file .adxe generati direttamente in Aura Docs, senza chiedere conferma ogni volta</span></div>
+            <label class="tgl"><input type="checkbox" id="s-adxauto" onchange="saveSett()"><span class="tgl-tr"><span class="tgl-th"></span></span></label>
+          </div>
+        </div>
+
+        <div class="ss-panel" data-panel="istruzioni">
+          <div class="ss-col">
+            <div class="ss-rd" style="margin-bottom:9px">Comportamento globale del sistema: dai istruzioni che Nyra seguirà in ogni conversazione.</div>
+            <textarea class="sta" id="s-sp" placeholder="Es: Rispondi sempre in modo breve e conciso..." rows="5" oninput="saveSett()"></textarea>
+          </div>
+        </div>
+        <div class="ss-panel" data-panel="privacy">
+          <div class="ss-row ss-row-tap" onclick="exportChat()">
+            <div class="ss-ri"><span class="ss-rt">Esporta chat corrente</span><span class="ss-rd">Scarica la conversazione come file .txt</span></div>
+            <span class="material-icons-round" style="color:var(--on-surface-dim);font-size:20px">download</span>
+          </div>
+          <div class="ss-row">
+            <div class="ss-ri"><span class="ss-rt">Cronologia automatica</span><span class="ss-rd">Le chat vengono eliminate automaticamente dopo 3 mesi</span></div>
+            <span class="material-icons-round" style="color:var(--on-surface-dim);font-size:20px">schedule</span>
+          </div>
+        </div>
+        <div class="ss-panel" data-panel="dati">
+          <div class="ss-row ss-row-tap" onclick="openMemPanel()">
+            <div class="ss-ri"><span class="ss-rt">Gestisci Memoria</span><span class="ss-rd">Visualizza e rimuovi i ricordi salvati</span></div>
+            <span class="material-icons-round" style="color:var(--primary);font-size:20px">psychology</span>
+          </div>
+          <div class="ss-row ss-row-tap ss-row-del" onclick="clearAll()">
+            <div class="ss-ri"><span class="ss-rt" style="color:var(--red)">Cancella cronologia</span><span class="ss-rd">Elimina definitivamente tutte le chat</span></div>
+            <span class="material-icons-round" style="color:var(--red);font-size:20px">delete_outline</span>
+          </div>
+        </div>
+
+        <!-- [NEW] Sezione "Altro da Aura" -->
+        <div class="ss-panel" data-panel="altro">
+          <div class="ss-rd" style="margin-bottom:14px">Scopri gli altri strumenti dell'ecosistema Aura Studio Italia, pensati per lavorare insieme a Nyra.</div>
+          <div class="aura-services-grid">
+            <a class="aura-service-card" href="https://docs.aurastudioitalia.it" target="_blank" rel="noopener">
+              <div class="asc-ico"><img src="https://docs.aurastudioitalia.it/images/auradocs.svg" alt="Aura Docs"></div>
+              <div class="asc-name">Aura Docs</div>
+              <div class="asc-desc">Editor di documenti collaborativo, integrato con Nyra.</div>
+            </a>
+            <a class="aura-service-card" href="https://tasks.aurastudioitalia.it" target="_blank" rel="noopener">
+              <div class="asc-ico"><img src="https://tasks.aurastudioitalia.it/images/auratasks.svg" alt="Aura Tasks"></div>
+              <div class="asc-name">Aura Tasks</div>
+              <div class="asc-desc">Gestore di attività e progetti, integrato con Nyra.</div>
+            </a>
+            <a class="aura-service-card" href="https://calendar.aurastudioitalia.it" target="_blank" rel="noopener">
+              <div class="asc-ico"><img src="https://calendar.aurastudioitalia.it/images/auracalendar.svg" alt="Aura Calendar"></div>
+              <div class="asc-name">Aura Calendar</div>
+              <div class="asc-desc">Agenda digitale per organizzare il tuo tempo.</div>
+            </a>
+            <a class="aura-service-card" href="https://apps.aurastudioitalia.it" target="_blank" rel="noopener">
+              <div class="asc-ico"><img src="https://apps.aurastudioitalia.it/images/aura-nobg.png" alt="Aura Launchboard"></div>
+              <div class="asc-name">Aura Launchboard</div>
+              <div class="asc-desc">Tutti i prodotti Aura in un unico posto.</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- [NEW] Sezione "Informazioni" -->
+        <div class="ss-panel" data-panel="info">
+          <a class="ss-row ss-row-tap" style="text-decoration:none;color:inherit" href="https://aurastudioitalia.it/supporto" target="_blank" rel="noopener">
+            <div class="ss-ri"><span class="ss-rt">Supporto</span><span class="ss-rd">Centro assistenza e contatti Aura</span></div>
+            <span class="material-icons-round" style="color:var(--on-surface-dim);font-size:20px">open_in_new</span>
+          </a>
+          <a class="ss-row ss-row-tap" style="text-decoration:none;color:inherit" href="https://aurastudioitalia.it/termini" target="_blank" rel="noopener">
+            <div class="ss-ri"><span class="ss-rt">Termini di Servizio</span><span class="ss-rd">Condizioni d'uso di Nyra e dei servizi Aura</span></div>
+            <span class="material-icons-round" style="color:var(--on-surface-dim);font-size:20px">open_in_new</span>
+          </a>
+          <a class="ss-row ss-row-tap" style="text-decoration:none;color:inherit" href="https://privacy.aurastudioitalia.it/privacypolicy" target="_blank" rel="noopener">
+            <div class="ss-ri"><span class="ss-rt">Privacy Policy</span><span class="ss-rd">Come trattiamo i tuoi dati personali</span></div>
+            <span class="material-icons-round" style="color:var(--on-surface-dim);font-size:20px">open_in_new</span>
+          </a>
+          <div class="ss-ver">Nyra · v4.2 — Realizzata con 💜 da Aura Studio Italia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MEMORY PANEL ============ -->
+<div id="memPanel" onclick="if(event.target===this)closeMemPanel()">
+  <div class="mem-sheet">
+    <div class="mem-hdr">
+      <div class="mem-hdr-l">
+        <div class="mem-ico"><span class="material-icons-round">psychology</span></div>
+        <div><div class="mem-title">Memoria di Nyra</div><div class="mem-count" id="memCount">0/30 ricordi</div></div>
+      </div>
+      <button class="mem-x" onclick="closeMemPanel()"><span class="material-icons-round">close</span></button>
+    </div>
+    <div id="memList"></div>
+    <div class="mem-ftr">
+      <button class="mem-clear" onclick="clearAllMemory()">Cancella tutta la memoria</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WARNING MODAL ============ -->
+<div class="mv" id="mWN">
+  <div class="msh">
+    <div class="m-badge wn">⚠️</div>
+    <h2>Nota bene</h2>
+    <p>Nyra <strong>non sostituisce un professionista</strong>. Per questioni mediche o emotive critiche, consulta un esperto.</p>
+    <p>L'AI può generare informazioni inesatte. Verifica sempre i fatti importanti.</p>
+    <div class="m-btns">
+      <button class="m-btn m-acc" onclick="closeM('mWN','nwn')">Ho capito</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODALE CONFERMA SALVATAGGIO IN AURA DOCS ============ -->
+<div class="mv" id="mAdx">
+  <div class="msh">
+    <div class="m-badge adx"><span class="material-icons-round" style="color:var(--primary);font-size:24px">auto_stories</span></div>
+    <h2>Salvare in Aura Docs?</h2>
+    <p>Nyra vuole salvare il documento <strong id="mAdxFileName">documento.adxe</strong> direttamente nel tuo spazio Aura Docs, così potrai continuare a modificarlo online.</p>
+    <p style="font-size:.78rem">Puoi autorizzare il salvataggio automatico futuro in Impostazioni → Chat &amp; Aspetto.</p>
+    <div class="m-btns">
+      <button class="m-btn m-ghost" onclick="closeM('mAdx','')">Annulla</button>
+      <button class="m-btn m-acc" id="mAdxConfirmBtn" onclick="confirmSaveToAuraDocs()">Salva in Aura Docs</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== V4 WELCOME MODAL ====== -->
+<div id="v4Modal" onclick="if(event.target===this)closeV4Modal()">
+  <div class="v4-sheet">
+    <div class="v4-logo-row">
+      <img src="/images/nyra-nobg.png" alt="Nyra" onerror="this.style.display='none'"/>
+      <span>Nyra</span>
+    </div>
+    <div class="v4-badge">
+      <span class="material-icons-round" style="font-size:13px">auto_awesome</span>
+      Novità in v4
+    </div>
+    <div class="v4-title">Bentornato/a! 🎉</div>
+    <div class="v4-subtitle">Nyra v4 porta una serie di miglioramenti pensati per rendere ogni conversazione più fluida, intelligente e personale.</div>
+    <div class="v4-feats">
+      <div class="v4-feat">
+        <div class="v4-feat-ico"><span class="material-icons-round">psychology</span></div>
+        <div class="v4-feat-body">
+          <div class="v4-feat-title">Memoria Intelligente</div>
+          <div class="v4-feat-desc">Nyra ricorda le tue preferenze e informazioni personali tra le sessioni.</div>
+        </div>
+      </div>
+      <div class="v4-feat">
+        <div class="v4-feat-ico"><span class="material-icons-round">perm_media</span></div>
+        <div class="v4-feat-body">
+          <div class="v4-feat-title">Galleria &amp; Drawer File</div>
+          <div class="v4-feat-desc">Tutte le immagini generate ora sono raggruppate a fine risposta, e un nuovo pannello raccoglie file e media della chat.</div>
+        </div>
+      </div>
+      <div class="v4-feat">
+        <div class="v4-feat-ico"><span class="material-icons-round">auto_stories</span></div>
+        <div class="v4-feat-body">
+          <div class="v4-feat-title">Aura Docs</div>
+          <div class="v4-feat-desc">Salva i documenti .adxe generati da Nyra direttamente nel tuo spazio Aura Docs.</div>
+        </div>
+      </div>
+      <div class="v4-feat">
+        <div class="v4-feat-ico"><span class="material-icons-round">palette</span></div>
+        <div class="v4-feat-body">
+          <div class="v4-feat-title">Tema Chiaro e Scuro</div>
+          <div class="v4-feat-desc">Scegli tra tema scuro, chiaro o adattivo al sistema nelle Impostazioni.</div>
+        </div>
+      </div>
+    </div>
+    <button class="v4-avanti" onclick="closeV4Modal()">Inizia a usare Nyra →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================================================================
+   SVG / LOGO HELPERS
+================================================================ */
+function gemStarSVG(size) {
+  return `<img src="/images/nyra-nobg.png" width="${size}" height="${size}" alt="Nyra Logo" loading="lazy" onerror="this.style.display='none'">`;
+}
+function welcomeStarSVG() {
+  return `<img class="gem-star" src="/images/nyra-nobg.png" width="76" height="76" alt="Nyra Logo" onerror="this.style.display='none'">`;
+}
+function inputLogoSVG() {
+  return `<img src="/images/nyra-nobg.png" width="22" height="22" alt="Nyra Logo" onerror="this.style.display='none'">`;
+}
+document.getElementById('inputLogo').innerHTML = inputLogoSVG();
+
+/* ================================================================
+   MARKED — renderer personalizzato
+   Le immagini nel markdown vengono marcate con classe
+   'inline-extracted' e nascoste via CSS: verranno estratte e ri-renderizzate
+   in galleria a fine risposta invece di comparire inline nel testo.
+================================================================ */
+const renderer = new marked.Renderer();
+renderer.code = function(codeOrObj, lang) {
+  let text, language;
+  if (typeof codeOrObj === 'object' && codeOrObj !== null) {
+    text = codeOrObj.text || '';
+    language = codeOrObj.lang || lang || '';
+  } else {
+    text = codeOrObj || '';
+    language = lang || '';
+  }
+  const escCode = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const langLabel = language ? `<span class="code-lang">${escapeHtml(language)}</span>` : '';
+  return `<pre>${langLabel}<button class="copy-code" onclick="copyCode(this)">Copia</button><code class="language-${escapeHtml(language)}">${escCode}</code></pre>`;
+};
+renderer.image = function(hrefOrObj, title, text) {
+  let href, alt;
+  if (typeof hrefOrObj === 'object' && hrefOrObj !== null) {
+    href = hrefOrObj.href || ''; alt = hrefOrObj.text || '';
+  } else { href = hrefOrObj || ''; alt = text || ''; }
+  return `<img class="inline-extracted" src="${escapeHtml(href)}" alt="${escapeHtml(alt)}" data-gallery="1" loading="lazy">`;
+};
+marked.setOptions({ breaks: true, gfm: true, renderer });
+
+function copyCode(btn) {
+  const code = btn.parentElement.querySelector('code');
+  navigator.clipboard.writeText(code.innerText || '').then(() => {
+    btn.textContent = '✓';
+    setTimeout(() => btn.textContent = 'Copia', 2000);
+  }).catch(() => showToast('Copia non riuscita'));
+}
+
+/* ================================================================
+   STATO GLOBALE
+================================================================ */
+let chats = [],
+    curI = 0,
+    sett = {
+      tw: true,
+      tempDefault: false,
+      temp: 0.7,
+      sp: '',
+      modelId: 'openai/gpt-5-nano',
+      modelName: 'GPT-5 Nano',
+      searchDefault: false,
+      suggest: true,
+      adxAutoSave: false /* autorizzazione salvataggio automatico Aura Docs */
+    },
+    files = [],
+    busy = false,
+    ldRow = null,
+    stopFlag = false,
+    abortController = null,
+    userScrolling = false,
+    memories = [],
+    webSearchOn = false,
+    sidebarCollapsed = false,
+    sidebarOpenDesktop = true, /* stato apertura sidebar anche su desktop */
+    mediaDrawerOpen = false,   /* stato drawer file/media */
+    mediaDrawerTab = 'media',
+    pendingAdxFile = null;     /* file .adxe in attesa di conferma salvataggio */
+
+const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+
+const SUGGESTIONS = [
+  'Scrivi un piano per la settimana',
+  'Spiegami un argomento difficile',
+  'Aiutami a scrivere una email',
+  'Dammi un\'idea creativa'
+];
+
+const THINKING_PHRASES = [
+  'Ci sto pensando...',
+  'Un attimo solo...',
+  'Sto scrivendo la risposta...',
+  'Ancora un secondo...',
+  'Sto organizzando le idee...'
+];
+
+/* ================================================================
+   UTILITY
+================================================================ */
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+let _toastTimer = null;
+function showToast(msg, dur = 2400) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[data-dyn="${src}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === '1') return resolve();
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', reject);
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = src;
+    s.dataset.dyn = src;
+    s.onload = () => { s.dataset.loaded = '1'; resolve(); };
+    s.onerror = reject;
+    document.body.appendChild(s);
+  });
+}
+
+/* ================================================================
+   TEMA — Chiaro / Scuro / Sistema
+================================================================ */
+let currentTheme = 'system';
+
+function applyTheme(theme) {
+  currentTheme = theme || 'system';
+  localStorage.setItem('nyra_theme', currentTheme);
+  let resolved = currentTheme;
+  if (currentTheme === 'system') {
+    resolved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', resolved);
+  document.querySelectorAll('.theme-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.themeVal === currentTheme);
+  });
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem('nyra_theme') || 'system';
+  applyTheme(saved);
+}
+
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+  if (currentTheme === 'system') applyTheme('system');
+});
+
+/* ================================================================
+   TITOLO DINAMICO — max 5 parole dalla prima domanda
+================================================================ */
+function generateChatTitle(text) {
+  if (!text || !text.trim()) return 'Nuova Chat';
+  const cleaned = text.trim().replace(/[^\w\s\u00C0-\u017E]/g, ' ');
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  const title = words.slice(0, 5).join(' ');
+  return title || 'Nuova Chat';
+}
+
+/* ================================================================
+   SCROLL
+================================================================ */
+function setupScrollListener() {
+  const c = document.getElementById('chat');
+  c.addEventListener('scroll', () => {
+    const nearBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 120;
+    userScrolling = !nearBottom;
+    document.getElementById('scrollBtn').classList.toggle(
+      'show', !nearBottom && c.scrollHeight > c.clientHeight + 200
+    );
+  }, { passive: true });
+}
+
+function scrollB(force = false) {
+  const c = document.getElementById('chat');
+  if (force || !userScrolling) c.scrollTop = c.scrollHeight;
+}
+
+function forceScrollBottom() {
+  userScrolling = false;
+  const c = document.getElementById('chat');
+  c.scrollTop = c.scrollHeight;
+  document.getElementById('scrollBtn').classList.remove('show');
+}
+
+/* ================================================================
+   SIDEBAR — gestione apertura/chiusura sospesa (mobile + desktop)
+================================================================ */
+function isDesktop() { return window.innerWidth >= 920; }
+
+function togSB() {
+  const s = document.getElementById('sidebar');
+  if (isDesktop()) {
+    sidebarOpenDesktop = !sidebarOpenDesktop;
+    s.classList.toggle('open', sidebarOpenDesktop);
+    updateMainColMargin();
+    try { localStorage.setItem('nsb_open', sidebarOpenDesktop ? '1' : '0'); } catch(e){}
+  } else {
+    const op = s.classList.toggle('open');
+    document.getElementById('ov').classList.toggle('on', op);
+    if (op) renderList();
+  }
+  updateSbToggleIcon();
+}
+function closeSB() {
+  if (isDesktop()) return; // su desktop non esiste overlay di chiusura
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('ov').classList.remove('on');
+  updateSbToggleIcon();
+}
+function updateSbToggleIcon() {
+  const icon = document.getElementById('sbToggleIcon');
+  if (!icon) return;
+  const isOpen = document.getElementById('sidebar').classList.contains('open');
+  icon.textContent = isOpen ? 'left_panel_close' : (isDesktop() ? 'left_panel_open' : 'menu');
+}
+function updateMainColMargin() {
+  const mc = document.getElementById('mainCol');
+  if (!isDesktop()) { mc.classList.remove('sb-collapsed-margin','sb-closed-margin'); return; }
+  if (!sidebarOpenDesktop) { mc.classList.add('sb-closed-margin'); mc.classList.remove('sb-collapsed-margin'); return; }
+  mc.classList.remove('sb-closed-margin');
+  mc.classList.toggle('sb-collapsed-margin', sidebarCollapsed);
+}
+function toggleCollapse() {
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+  try { localStorage.setItem('nsc', sidebarCollapsed ? '1' : '0'); } catch (e) {}
+  updateMainColMargin();
+}
+function toggleChatSearch() {
+  const box = document.getElementById('sbSearchBox');
+  box.classList.toggle('on');
+  if (box.classList.contains('on')) document.getElementById('chatSearchInput').focus();
+  else { document.getElementById('chatSearchInput').value = ''; renderList(); }
+}
+window.addEventListener('resize', () => {
+  const s = document.getElementById('sidebar');
+  if (isDesktop()) {
+    document.getElementById('ov').classList.remove('on');
+    s.classList.toggle('open', sidebarOpenDesktop);
+  } else {
+    s.classList.remove('open');
+  }
+  updateMainColMargin();
+  updateSbToggleIcon();
+});
+
+/* ================================================================
+   DONATION STRIP
+================================================================ */
+function initDonationStrip() {
+  if (localStorage.getItem('don_strip_closed')) return;
+  setTimeout(() => {
+    if (!localStorage.getItem('don_strip_closed') && !sidebarCollapsed) {
+      const strip = document.getElementById('donStrip');
+      if (strip) strip.classList.add('show');
+    }
+  }, 40000);
+}
+
+function closeDonationStrip() {
+  const strip = document.getElementById('donStrip');
+  if (strip) strip.classList.remove('show');
+  const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  localStorage.setItem('don_strip_closed', String(expiry));
+}
+
+/* ================================================================
+   EXIT TEMP CHAT
+================================================================ */
+function exitTempChat() {
+  if (!chats[curI] || !chats[curI].temp) return;
+  chats.splice(curI, 1);
+  const firstRegular = chats.findIndex(c => !c.temp);
+  if (firstRegular >= 0) {
+    curI = firstRegular;
+  } else {
+    newCObj(false);
+    curI = 0;
+  }
+  renderList();
+  renderChat();
+  showToast('🔓 Chat temporanea chiusa');
+}
+
+/* ================================================================
+   V4 WELCOME MODAL
+================================================================ */
+function openV4Modal() {
+  document.getElementById('v4Modal').classList.add('on');
+}
+function closeV4Modal() {
+  document.getElementById('v4Modal').classList.remove('on');
+  localStorage.setItem('nyra_v4_seen', '1');
+}
+function checkV4Modal() {
+  if (!localStorage.getItem('nyra_v4_seen')) {
+    setTimeout(() => openV4Modal(), 1400);
+  }
+}
+
+/* ================================================================
+   PASTE FILE SUPPORT
+================================================================ */
+function initPasteSupport() {
+  document.addEventListener('paste', (e) => {
+    const active = document.activeElement;
+    const isInput = active === document.getElementById('ui');
+    const isBody  = active === document.body || active === document.documentElement;
+    if (!isInput && !isBody) return;
+    const items = e.clipboardData?.items;
+    if (!items || !items.length) return;
+    let pastedCount = 0;
+    for (const item of items) {
+      if (item.kind !== 'file') continue;
+      const file = item.getAsFile();
+      if (!file) continue;
+      const supported = file.type.startsWith('image/') ||
+                        file.type === 'text/plain' ||
+                        file.type === 'application/pdf';
+      if (!supported) continue;
+      if (files.length >= 5) { showToast('Massimo 5 file allegabili'); break; }
+      files.push(file);
+      pastedCount++;
+    }
+    if (pastedCount > 0) {
+      e.preventDefault();
+      renderFP();
+      updateSendBtn();
+      const fpsEl = document.getElementById('fps');
+      const badge = document.createElement('div');
+      badge.className = 'paste-badge';
+      badge.textContent = `📋 ${pastedCount} file incollat${pastedCount > 1 ? 'i' : 'o'}`;
+      fpsEl.style.position = 'relative';
+      fpsEl.appendChild(badge);
+      setTimeout(() => badge.remove(), 1800);
+      document.getElementById('ui').focus();
+    }
+  });
+}
+
+/* ================================================================
+   GALLERIA IMMAGINI — estrazione e rendering raggruppato
+   Estrae tutte le <img class="inline-extracted"> renderizzate dal markdown
+   (immagini fornite/generate da Nyra nel corpo della risposta) e le
+   sostituisce con un'unica galleria pulita mostrata SOLO a fine risposta,
+   invece di lasciarle sparse inline nel testo.
+================================================================ */
+function extractAndRenderInlineGallery(bub) {
+  const imgs = Array.from(bub.querySelectorAll('img.inline-extracted[data-gallery="1"]'));
+  if (!imgs.length) return [];
+  const collected = imgs.map(img => ({ src: img.getAttribute('src'), alt: img.getAttribute('alt') || 'Immagine' }));
+  // Rimuove i tag <img> originali e i paragrafi vuoti risultanti
+  imgs.forEach(img => {
+    const p = img.closest('p');
+    img.remove();
+    if (p && !p.textContent.trim() && !p.querySelector('img,code,a')) p.remove();
+  });
+  return collected;
+}
+
+function renderNyraGallery(container, images) {
+  if (!Array.isArray(images) || !images.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'nyra-gallery';
+  const label = document.createElement('div');
+  label.className = 'nyra-gallery-label';
+  label.innerHTML = `<span class="material-icons-round">photo_library</span>${images.length} immagine${images.length > 1 ? 'i' : ''} in questa risposta`;
+  wrap.appendChild(label);
+  const grid = document.createElement('div');
+  grid.className = 'nyra-gallery-grid';
+  images.forEach(imgData => {
+    const item = document.createElement('div');
+    item.className = 'nyra-gallery-item';
+    const img = document.createElement('img');
+    img.src = imgData.src; img.alt = imgData.alt || 'Immagine';
+    img.loading = 'lazy';
+    img.classList.add('loading');
+    img.onload  = () => { img.classList.remove('loading'); img.classList.add('loaded'); };
+    img.onerror = () => { item.classList.add('broken'); };
+    item.appendChild(img);
+    if (imgData.alt) {
+      const cap = document.createElement('div');
+      cap.className = 'ngi-cap'; cap.textContent = imgData.alt;
+      item.appendChild(cap);
+    }
+    item.onclick = () => { if (!item.classList.contains('broken')) window.open(imgData.src, '_blank', 'noopener'); };
+    grid.appendChild(item);
+    // registra nella libreria media della chat corrente per il drawer
+    registerChatMedia(imgData.src, imgData.alt);
+  });
+  wrap.appendChild(grid);
+  container.appendChild(wrap);
+}
+
+/* ================================================================
+   RENDER IMMAGINI DA RICERCA WEB (data.searchImages)
+================================================================ */
+function renderSearchImages(container, images) {
+  if (!Array.isArray(images) || !images.length) return;
+  const grid = document.createElement('div');
+  grid.className = 'search-images-grid';
+  let added = 0;
+  images.slice(0, 4).forEach(imgData => {
+    const src  = typeof imgData === 'string' ? imgData : (imgData.url || imgData.src || '');
+    const alt  = typeof imgData === 'object'  ? (imgData.alt || imgData.title || 'Immagine') : 'Immagine';
+    const link = typeof imgData === 'object'  ? (imgData.link || imgData.url || src) : src;
+    if (!src) return;
+    const item = document.createElement('div');
+    item.className = 'search-img-item';
+    const img = document.createElement('img');
+    img.alt     = alt;
+    img.loading = 'lazy';
+    img.classList.add('loading');
+    img.onload  = () => { img.classList.remove('loading'); img.classList.add('loaded'); };
+    img.onerror = () => { item.remove(); };
+    img.src     = src;
+    item.title   = alt;
+    item.onclick = () => window.open(link, '_blank', 'noopener');
+    item.appendChild(img);
+    grid.appendChild(item);
+    added++;
+    registerChatMedia(src, alt);
+  });
+  if (added > 0) {
+    container.appendChild(grid);
+    const cap = document.createElement('div');
+    cap.className = 'search-images-caption';
+    cap.innerHTML = `<span class="material-icons-round">image_search</span>Immagini dalla ricerca web`;
+    container.appendChild(cap);
+  }
+}
+
+/* ================================================================
+   FIRESTORE HELPERS
+================================================================ */
+async function saveSettingsFS() {
+  try {
+    const { doc, setDoc } = window.__fs;
+    const uid = window.__uid;
+    if (!uid) return;
+    await setDoc(doc(window.__db, `nyra/${uid}/settings/prefs`), { ...sett, ts: Date.now() });
+  } catch (e) { console.warn('saveSettingsFS:', e); }
+}
+
+async function loadSettingsFS() {
+  try {
+    const { doc, getDoc } = window.__fs;
+    const uid = window.__uid;
+    if (!uid) return;
+    const snap = await getDoc(doc(window.__db, `nyra/${uid}/settings/prefs`));
+    if (snap.exists()) {
+      const d = snap.data();
+      sett = { ...sett, ...d };
+    }
+  } catch (e) { console.warn('loadSettingsFS:', e); }
+}
+
+async function saveChatFS(chat) {
+  if (!window.__uid || !chat || chat.temp) return;
+  try {
+    const { doc, setDoc } = window.__fs;
+    const uid = window.__uid;
+    const title = generateChatTitle(chat.msgs.find(m => m.role === 'user')?.content || '');
+    await setDoc(doc(window.__db, `nyra/${uid}/chats/${chat.id}`), {
+      id: chat.id,
+      pinned: chat.pinned || false,
+      title,
+      ts: Date.now(),
+      msgs: chat.msgs.map(m => ({ role: m.role, content: m.content || '' }))
+    });
+  } catch (e) { console.warn('saveChatFS:', e); }
+}
+
+async function deleteChatFS(chatId) {
+  if (!window.__uid) return;
+  try {
+    const { doc, deleteDoc } = window.__fs;
+    await deleteDoc(doc(window.__db, `nyra/${window.__uid}/chats/${chatId}`));
+  } catch (e) { console.warn('deleteChatFS:', e); }
+}
+
+async function loadChatsFS() {
+  try {
+    const { collection, getDocs, query, orderBy } = window.__fs;
+    const uid = window.__uid;
+    if (!uid) return [];
+    const q = query(
+      collection(window.__db, `nyra/${uid}/chats`),
+      orderBy('ts', 'desc')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ ...d.data() }));
+  } catch (e) {
+    console.warn('loadChatsFS:', e);
+    return [];
+  }
+}
+
+async function pruneOldChats() {
+  try {
+    const { collection, getDocs, query, where, deleteDoc, doc } = window.__fs;
+    const uid = window.__uid;
+    if (!uid) return;
+    const cutoff = Date.now() - THREE_MONTHS_MS;
+    const q = query(
+      collection(window.__db, `nyra/${uid}/chats`),
+      where('ts', '<', cutoff)
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      snap.docs.forEach(d => deleteDoc(doc(window.__db, `nyra/${uid}/chats/${d.id}`)));
+      const oldIds = new Set(snap.docs.map(d => d.id));
+      chats = chats.filter(c => !oldIds.has(c.id));
+      if (!chats.length) newCObj();
+    }
+  } catch (e) { console.warn('pruneOldChats:', e); }
+}
+
+/* ================================================================
+   MEMORIA
+================================================================ */
+async function loadMemory() {
+  try {
+    const { collection, getDocs, query, orderBy } = window.__fs;
+    const uid = window.__uid;
+    if (!uid) return;
+    const q = query(
+      collection(window.__db, `nyra/${uid}/memory`),
+      orderBy('ts', 'desc')
+    );
+    const snap = await getDocs(q);
+    memories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) { memories = []; }
+}
+
+function normalizeMemText(t) {
+  return (t || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function textSimilarity(a, b) {
+  const wa = new Set(normalizeMemText(a).split(' ').filter(Boolean));
+  const wb = new Set(normalizeMemText(b).split(' ').filter(Boolean));
+  if (!wa.size || !wb.size) return 0;
+  let inter = 0;
+  wa.forEach(w => { if (wb.has(w)) inter++; });
+  const union = wa.size + wb.size - inter;
+  return union ? inter / union : 0;
+}
+
+function isDuplicateMemory(text) {
+  const norm = normalizeMemText(text);
+  if (!norm) return true;
+  return memories.some(m => {
+    const mn = normalizeMemText(m.text);
+    if (mn === norm) return true;
+    if (mn.length > 8 && (mn.includes(norm) || norm.includes(mn))) return true;
+    return textSimilarity(m.text, text) >= 0.6;
+  });
+}
+
+async function saveMemory(text) {
+  if (!window.__uid || !text) return;
+  if (isDuplicateMemory(text)) return;
+  if (memories.length >= 30) {
+    const oldest = memories[memories.length - 1];
+    if (oldest) await deleteMemoryItem(oldest.id);
+  }
+  try {
+    const { collection, addDoc } = window.__fs;
+    const uid = window.__uid;
+    const ref = await addDoc(
+      collection(window.__db, `nyra/${uid}/memory`),
+      { text, ts: Date.now() }
+    );
+    memories.unshift({ id: ref.id, text, ts: Date.now() });
+    return true;
+  } catch (e) { console.warn('saveMemory:', e); return false; }
+}
+
+async function deleteMemoryItem(id) {
+  try {
+    const { doc, deleteDoc } = window.__fs;
+    await deleteDoc(doc(window.__db, `nyra/${window.__uid}/memory/${id}`));
+    memories = memories.filter(m => m.id !== id);
+  } catch (e) { console.warn('deleteMemoryItem:', e); }
+}
+
+async function clearAllMemory() {
+  if (!confirm('Cancellare tutta la memoria di Nyra?')) return;
+  try {
+    const { collection, getDocs, doc, deleteDoc } = window.__fs;
+    const uid = window.__uid;
+    if (!uid) return;
+    const snap = await getDocs(collection(window.__db, `nyra/${uid}/memory`));
+    await Promise.all(snap.docs.map(d => deleteDoc(doc(window.__db, `nyra/${uid}/memory/${d.id}`))));
+    memories = [];
+    renderMemPanel();
+    showToast('Memoria cancellata');
+  } catch (e) { showToast('Errore durante la cancellazione'); }
+}
+
+function extractMemorySuggestions(text) {
+  const pattern = /\[MEMORY:\s*(.+?)\]/gi;
+  const found = [];
+  let m;
+  while ((m = pattern.exec(text)) !== null) found.push(m[1].trim());
+  const uniq = [];
+  found.forEach(f => {
+    if (!uniq.some(u => textSimilarity(u, f) >= 0.6)) uniq.push(f);
+  });
+  return uniq;
+}
+
+function cleanMemoryTags(text) {
+  return text.replace(/\[MEMORY:\s*.+?\]/gi, '').trim();
+}
+
+/* ================================================================
+   FILE TAGS
+================================================================ */
+function extractFileBlocks(text) {
+  const pattern = /\[FILE:(\w+):([^\]\n]+)\]([\s\S]*?)\[\/FILE\]/gi;
+  const found = [];
+  let m;
+  while ((m = pattern.exec(text)) !== null) {
+    found.push({ ext: m[1].toLowerCase().trim(), filename: m[2].trim(), content: m[3].trim() });
+  }
+  return found;
+}
+function cleanFileTags(text) {
+  return text.replace(/\[FILE:\w+:[^\]\n]+\]([\s\S]*?)\[\/FILE\]/gi, '').trim();
+}
+
+const FILE_ICONS = { txt: 'description', md: 'article', pdf: 'picture_as_pdf', docx: 'description', adxe: 'auto_stories' };
+
+/* ================================================================
+   RENDER FILE CARDS — bottone "Salva in Aura Docs"
+   per i file .adxe, con conferma visiva o autosave se autorizzato.
+================================================================ */
+function renderFileCards(container, fileBlocks) {
+  fileBlocks.forEach((fb) => {
+    const card = document.createElement('div');
+    card.className = 'filecard';
+    const icoName = FILE_ICONS[fb.ext] || 'insert_drive_file';
+    const isAdx = fb.ext === 'adxe';
+    card.innerHTML = `
+      <div class="fc-icon"><span class="material-icons-round">${icoName}</span></div>
+      <div class="fc-info">
+        <div class="fc-name">${escapeHtml(fb.filename)}</div>
+        <div class="fc-meta">File .${escapeHtml(fb.ext)}</div>
+      </div>
+      <div class="fc-actions">
+        ${isAdx ? `<button class="fc-adx" title="Salva in Aura Docs"><span class="material-icons-round">auto_stories</span></button>` : ''}
+        <button class="fc-dl" title="Scarica"><span class="material-icons-round">download</span></button>
+      </div>`;
+    card.querySelector('.fc-dl').onclick = () => downloadGeneratedFile(fb);
+    if (isAdx) {
+      const adxBtn = card.querySelector('.fc-adx');
+      adxBtn.onclick = () => requestSaveToAuraDocs(fb, adxBtn);
+    }
+    container.appendChild(card);
+    // registra nella libreria file della chat per il drawer
+    registerChatFile(fb);
+  });
+}
+
+async function downloadGeneratedFile(fb) {
+  try {
+    switch (fb.ext) {
+      case 'txt': return triggerDownload(new Blob([fb.content], { type: 'text/plain;charset=utf-8' }), ensureExt(fb.filename, 'txt'));
+      case 'md':  return triggerDownload(new Blob([fb.content], { type: 'text/markdown;charset=utf-8' }), ensureExt(fb.filename, 'md'));
+      case 'adxe': {
+        const payload = buildAdxePayload(fb);
+        return triggerDownload(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' }), ensureExt(fb.filename, 'adxe'));
+      }
+      case 'pdf':  return await generatePdf(fb);
+      case 'docx': return await generateDocx(fb);
+      default:     return triggerDownload(new Blob([fb.content], { type: 'text/plain;charset=utf-8' }), fb.filename);
+    }
+  } catch (e) {
+    console.error('downloadGeneratedFile:', e);
+    showToast('Errore nella generazione del file');
+  }
+}
+
+/* costruisce il payload .adxe conforme al formato Aura Docs */
+function buildAdxePayload(fb) {
+  return {
+    adx_format: 'adxe',
+    adx_version: 1,
+    meta: {
+      title: fb.filename.replace(/\.adxe$/i, ''),
+      exported_at: new Date().toISOString(),
+      exported_by: window.__uid || 'nyra',
+      font_family: 'Poppins',
+      font_size: '16px',
+      app: 'Aura Docs',
+      app_url: 'https://docs.aurastudioitalia.it'
+    },
+    content_md: fb.content,
+    content_blocks: fb.content.split(/\r?\n/).map(line => line.trim()
+      ? { type: 'paragraph', text: line, inline: [{ t: 'text', text: line }] }
+      : { type: 'blank' })
+  };
+}
+
+function ensureExt(name, ext) {
+  return name.toLowerCase().endsWith('.' + ext) ? name : name + '.' + ext;
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Download avviato ✓');
+}
+
+async function generatePdf(fb) {
+  await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const marginX = 48, marginY = 56, maxWidth = 500;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+  const lines = doc.splitTextToSize(fb.content, maxWidth);
+  let y = marginY;
+  const lineH = 15;
+  lines.forEach(line => {
+    if (y > 780) { doc.addPage(); y = marginY; }
+    doc.text(line, marginX, y); y += lineH;
+  });
+  doc.save(ensureExt(fb.filename, 'pdf'));
+  showToast('PDF generato ✓');
+}
+
+async function generateDocx(fb) {
+  await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  const JSZip = window.JSZip;
+  const zip = new JSZip();
+  const xmlEsc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const paragraphs = fb.content.split(/\r?\n/).map(line =>
+    `<w:p><w:r><w:t xml:space="preserve">${xmlEsc(line)}</w:t></w:r></w:p>`
+  ).join('');
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraphs}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417"/></w:sectPr></w:body></w:document>`;
+  const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
+  const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  zip.file('[Content_Types].xml', contentTypesXml);
+  zip.folder('_rels').file('.rels', relsXml);
+  zip.folder('word').file('document.xml', documentXml);
+  const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  triggerDownload(blob, ensureExt(fb.filename, 'docx'));
+  showToast('Documento Word generato ✓');
+}
+
+/* ================================================================
+   SALVATAGGIO IN AURA DOCS — richiesta + conferma + scrittura Firestore
+================================================================ */
+function requestSaveToAuraDocs(fb, triggerBtn) {
+  pendingAdxFile = { fb, btn: triggerBtn };
+  if (sett.adxAutoSave) {
+    // Autorizzazione già data dall'utente nelle impostazioni: salva senza modale
+    confirmSaveToAuraDocs();
+    return;
+  }
+  document.getElementById('mAdxFileName').textContent = fb.filename;
+  document.getElementById('mAdx').classList.add('on');
+}
+
+async function confirmSaveToAuraDocs() {
+  const pending = pendingAdxFile;
+  document.getElementById('mAdx').classList.remove('on');
+  if (!pending) return;
+  const { fb, btn } = pending;
+  const confirmBtn = document.getElementById('mAdxConfirmBtn');
+  if (confirmBtn) { confirmBtn.textContent = 'Salvataggio...'; confirmBtn.disabled = true; }
+  try {
+    if (!window.__uid) throw new Error('Utente non autenticato');
+    const { collection, addDoc } = window.__fs;
+    const payload = buildAdxePayload(fb);
+    await addDoc(collection(window.__db, `documents`), {
+      collaborators: { [window.__uid]: 'Proprietario' },
+      content: fb.content,
+      fontFamily: 'Poppins',
+      fontSize: '16px',
+      isPublic: false,
+      title: payload.meta.title || 'Senza titolo',
+      updatedAt: new Date()
+    });
+    showToast('📄 Documento salvato in Aura Docs ✓');
+    if (btn) { btn.classList.add('saved'); btn.innerHTML = '<span class="material-icons-round">check</span>'; }
+  } catch (e) {
+    console.error('confirmSaveToAuraDocs:', e);
+    showToast('Errore nel salvataggio su Aura Docs');
+  } finally {
+    if (confirmBtn) { confirmBtn.textContent = 'Salva in Aura Docs'; confirmBtn.disabled = false; }
+    pendingAdxFile = null;
+  }
+}
+
+/* ================================================================
+   MEMORY PANEL
+================================================================ */
+function openMemPanel() {
+  renderMemPanel();
+  document.getElementById('memPanel').classList.add('on');
+}
+function closeMemPanel() {
+  document.getElementById('memPanel').classList.remove('on');
+}
+function renderMemPanel() {
+  const list  = document.getElementById('memList');
+  const count = document.getElementById('memCount');
+  count.textContent = `${memories.length}/30 ricordi`;
+  if (!memories.length) {
+    list.innerHTML = `<div class="mem-empty">Nyra non ha ancora ricordi.<br><span style="font-size:.8rem;opacity:.6">Puoi chiederle di ricordare qualcosa!</span></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  memories.forEach(m => {
+    const d = new Date(m.ts);
+    const dateStr = d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+    const item = document.createElement('div');
+    item.className = 'mem-item';
+    const textDiv = document.createElement('div');
+    textDiv.className = 'mem-item-text';
+    textDiv.textContent = m.text;
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'mem-item-date';
+    dateDiv.textContent = dateStr;
+    textDiv.appendChild(dateDiv);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'mem-del';
+    delBtn.innerHTML = '<span class="material-icons-round">delete_outline</span>';
+    delBtn.onclick = () => delMemItem(m.id);
+    item.appendChild(textDiv);
+    item.appendChild(delBtn);
+    list.appendChild(item);
+  });
+}
+async function delMemItem(id) {
+  await deleteMemoryItem(id);
+  renderMemPanel();
+  showToast('Ricordo eliminato');
+}
+
+/* ================================================================
+   LIBRERIA FILE & MEDIA DELLA CHAT CORRENTE
+   Ogni chat mantiene due liste in memoria (non persistite separatamente,
+   derivate dai messaggi): chatMedia e chatFiles, popolate durante il
+   rendering dei messaggi e ad ogni nuova risposta.
+================================================================ */
+function registerChatMedia(src, alt) {
+  const c = chats[curI];
+  if (!c) return;
+  if (!c.chatMedia) c.chatMedia = [];
+  if (!c.chatMedia.some(m => m.src === src)) c.chatMedia.push({ src, alt: alt || 'Immagine' });
+}
+function registerChatFile(fb) {
+  const c = chats[curI];
+  if (!c) return;
+  if (!c.chatFiles) c.chatFiles = [];
+  if (!c.chatFiles.some(f => f.filename === fb.filename)) c.chatFiles.push({ ...fb });
+}
+
+/* Ricostruisce le liste media/file scansionando tutti i messaggi della chat corrente
+   (usato quando si cambia chat o al caricamento, per popolare il drawer). */
+function rebuildChatMediaLibrary() {
+  const c = chats[curI];
+  if (!c) return;
+  c.chatMedia = [];
+  c.chatFiles = [];
+  (c.msgs || []).forEach(m => {
+    if (m.role !== 'assistant' || !m.content) return;
+    const fileBlocks = extractFileBlocks(m.content);
+    fileBlocks.forEach(fb => registerChatFile(fb));
+    const cleaned = cleanFileTags(cleanMemoryTags(m.content));
+    let html = '';
+    try { html = marked.parse(cleaned); } catch(e) { html = ''; }
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    tmp.querySelectorAll('img.inline-extracted').forEach(img => {
+      registerChatMedia(img.getAttribute('src'), img.getAttribute('alt'));
+    });
+  });
+}
+
+/* ================================================================
+   DRAWER FILE & MEDIA — toggle, tab, render
+================================================================ */
+function toggleMediaDrawer(force) {
+  mediaDrawerOpen = (typeof force === 'boolean') ? force : !mediaDrawerOpen;
+  document.getElementById('mediaDrawer').classList.toggle('open', mediaDrawerOpen);
+  document.getElementById('mediaToggleBtn').classList.toggle('active', mediaDrawerOpen);
+  if (mediaDrawerOpen) renderMediaDrawer();
+}
+
+function switchMediaTab(tab) {
+  mediaDrawerTab = tab;
+  document.getElementById('mdTabMedia').classList.toggle('active', tab === 'media');
+  document.getElementById('mdTabFiles').classList.toggle('active', tab === 'files');
+  renderMediaDrawer();
+}
+
+function renderMediaDrawer() {
+  const body = document.getElementById('mdBody');
+  body.innerHTML = '';
+  const c = chats[curI];
+  if (mediaDrawerTab === 'media') {
+    const media = (c && c.chatMedia) || [];
+    if (!media.length) {
+      body.innerHTML = `<div class="md-empty"><span class="material-icons-round">image</span>Nessuna immagine in questa chat</div>`;
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'md-media-grid';
+    media.forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'md-media-item';
+      const img = document.createElement('img');
+      img.src = m.src; img.alt = m.alt || 'Immagine'; img.loading = 'lazy';
+      img.onload  = () => img.classList.add('loaded');
+      img.onerror = () => item.remove();
+      item.appendChild(img);
+      item.onclick = () => window.open(m.src, '_blank', 'noopener');
+      grid.appendChild(item);
+    });
+    body.appendChild(grid);
+  } else {
+    const filesList = (c && c.chatFiles) || [];
+    if (!filesList.length) {
+      body.innerHTML = `<div class="md-empty"><span class="material-icons-round">description</span>Nessun file in questa chat</div>`;
+      return;
+    }
+    filesList.forEach(fb => {
+      const item = document.createElement('div');
+      item.className = 'md-file-item';
+      const icoName = FILE_ICONS[fb.ext] || 'insert_drive_file';
+      item.innerHTML = `
+        <div class="md-file-ico"><span class="material-icons-round">${icoName}</span></div>
+        <div class="md-file-info">
+          <div class="md-file-name">${escapeHtml(fb.filename)}</div>
+          <div class="md-file-meta">.${escapeHtml(fb.ext)}</div>
+        </div>`;
+      item.onclick = () => downloadGeneratedFile(fb);
+      body.appendChild(item);
+    });
+  }
+}
+
+/* ================================================================
+   STORAGE / CHAT PERSISTENCE
+================================================================ */
+async function saveC() {
+  const c = chats[curI];
+  if (!c || c.temp) return;
+  try {
+    localStorage.setItem('nc', JSON.stringify(
+      chats.filter(ch => !ch.temp).map(ch => ({ ...ch, msgs: ch.msgs.map(m => ({ role: m.role, content: m.content || '' })) }))
+    ));
+  } catch (e) {}
+  await saveChatFS(c);
+}
+
+async function loadC() {
+  const fsChats = await loadChatsFS();
+  if (fsChats.length) {
+    chats = fsChats;
+  } else {
+    const ls = localStorage.getItem('nc');
+    if (ls) {
+      try { chats = JSON.parse(ls); } catch (e) { chats = []; }
+    }
+  }
+  newCObj();
+  chats.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  renderList();
+  renderChat();
+  await pruneOldChats();
+}
+
+function newCObj(forceTemp) {
+  if (chats.length > 0 && chats[0].msgs.length === 0 && !chats[0].pinned) {
+    curI = 0; return;
+  }
+  const temp = forceTemp !== undefined ? forceTemp : !!sett.tempDefault;
+  chats.unshift({ id: (temp ? 't' : 'c') + Date.now(), msgs: [], pinned: false, regenCount: 0, temp, chatMedia: [], chatFiles: [] });
+  curI = 0;
+}
+
+function newChat() {
+  if (chats[curI] && chats[curI].msgs.length === 0 && !chats[curI].pinned) {
+    curI = 0;
+  } else {
+    newCObj();
+  }
+  renderList(); renderChat(); saveC(); closeSB();
+  document.getElementById('ui').focus();
+}
+
+function newTempChat() {
+  chats.unshift({ id: 't' + Date.now(), msgs: [], pinned: false, regenCount: 0, temp: true, chatMedia: [], chatFiles: [] });
+  curI = 0;
+  renderList(); renderChat(); closeSB();
+  document.getElementById('ui').focus();
+  showToast('🔒 Chat temporanea avviata — non verrà salvata');
+}
+
+/* ================================================================
+   RENDER CHAT LIST
+================================================================ */
+function getMenuContainer() {
+  let c = document.getElementById('chatMenuContainer');
+  if (!c) { c = document.createElement('div'); c.id = 'chatMenuContainer'; document.body.appendChild(c); }
+  return c;
+}
+
+function dayGroupLabel(ts) {
+  if (!ts) return 'Precedenti';
+  const now = new Date(); const d = new Date(ts);
+  const startOfDay = dt => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime();
+  const diffDays = Math.round((startOfDay(now) - startOfDay(d)) / 86400000);
+  if (diffDays <= 0) return 'Oggi';
+  if (diffDays === 1) return 'Ieri';
+  if (diffDays <= 7) return 'Ultimi 7 giorni';
+  if (diffDays <= 30) return 'Ultimi 30 giorni';
+  return 'Precedenti';
+}
+
+function renderList() {
+  const ul = document.getElementById('chatList');
+  ul.innerHTML = '';
+  const menuContainer = getMenuContainer();
+  menuContainer.innerHTML = '';
+  const searchEl = document.getElementById('chatSearchInput');
+  const filterQ = searchEl ? normalizeMemText(searchEl.value) : '';
+  const pinned = []; const groups = {};
+  chats.forEach((c, i) => {
+    if (c.temp) return;
+    const firstUserMsg = c.msgs.find(m => m.role === 'user')?.content || '';
+    const t = c.msgs.length ? generateChatTitle(firstUserMsg) : 'Nuova Chat';
+    if (filterQ && !normalizeMemText(t).includes(filterQ)) return;
+    if (c.pinned) { pinned.push(i); return; }
+    const label = dayGroupLabel(c.ts);
+    (groups[label] = groups[label] || []).push(i);
+  });
+  let idxCounter = 0;
+  const buildLi = (i) => {
+    const c = chats[i];
+    const li = document.createElement('li');
+    li.style.setProperty('--idx', idxCounter++);
+    if (i === curI) li.classList.add('cur');
+    const firstUserMsg = c.msgs.find(m => m.role === 'user')?.content || '';
+    const t = c.msgs.length ? generateChatTitle(firstUserMsg) : 'Nuova Chat';
+    const icon = document.createElement('span');
+    icon.className = 'material-icons-round';
+    icon.style.cssText = 'font-size:17px;opacity:.55;flex-shrink:0';
+    icon.textContent = c.pinned ? 'push_pin' : 'chat_bubble_outline';
+    const ct = document.createElement('span');
+    ct.className = 'ct'; ct.textContent = t;
+    const cia = document.createElement('div'); cia.className = 'cia';
+    const moreBtn = document.createElement('button');
+    moreBtn.className = 'cib-more';
+    moreBtn.innerHTML = '<span class="material-icons-round">more_vert</span>';
+    moreBtn.onclick = (e) => togChatMenu(c.id, e, moreBtn);
+    const menu = document.createElement('div');
+    menu.className = 'chat-opts-menu';
+    menu.id = 'com-' + c.id;
+    menu.innerHTML = `
+      <button class="com-item" onclick="event.stopPropagation();exportChatById('${c.id}')">
+        <span class="material-icons-round">download</span>Esporta
+      </button>
+      <button class="com-item" onclick="event.stopPropagation();pinCById('${c.id}')">
+        <span class="material-icons-round">push_pin</span>${c.pinned ? 'Rimuovi pin' : 'Fissa'}
+      </button>
+      <button class="com-item danger" onclick="event.stopPropagation();delCById('${c.id}')">
+        <span class="material-icons-round">delete_outline</span>Elimina
+      </button>`;
+    cia.appendChild(moreBtn); menuContainer.appendChild(menu);
+    li.appendChild(icon); li.appendChild(ct); li.appendChild(cia);
+    li.onclick = (e) => {
+      if (e.target.closest('.cia')) return;
+      curI = i; renderList(); renderChat(); closeSB();
+    };
+    ul.appendChild(li);
+  };
+  if (pinned.length) {
+    const lbl = document.createElement('div'); lbl.className = 'cl-day'; lbl.textContent = '📌 Fissate';
+    ul.appendChild(lbl); pinned.forEach(buildLi);
+  }
+  ['Oggi','Ieri','Ultimi 7 giorni','Ultimi 30 giorni','Precedenti'].forEach(label => {
+    if (groups[label] && groups[label].length) {
+      const lbl = document.createElement('div'); lbl.className = 'cl-day'; lbl.textContent = label;
+      ul.appendChild(lbl); groups[label].forEach(buildLi);
+    }
+  });
+}
+
+function togChatMenu(chatId, e, btn) {
+  e.stopPropagation();
+  document.querySelectorAll('.chat-opts-menu.open').forEach(m => { if (m.id !== 'com-' + chatId) m.classList.remove('open'); });
+  const menu = document.getElementById('com-' + chatId);
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  if (!isOpen) {
+    const rect = btn.getBoundingClientRect();
+    menu.style.top  = (rect.bottom + 4) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.left = 'auto';
+  }
+  menu.classList.toggle('open');
+}
+
+function exportChatById(id) {
+  const idx = chats.findIndex(c => c.id === id);
+  if (idx >= 0) exportChatIdx(idx);
+  document.querySelectorAll('.chat-opts-menu.open').forEach(m => m.classList.remove('open'));
+}
+
+async function pinCById(id) {
+  const i = chats.findIndex(c => c.id === id);
+  if (i < 0) return;
+  document.querySelectorAll('.chat-opts-menu.open').forEach(m => m.classList.remove('open'));
+  const pinnedCount = chats.filter(c => c.pinned).length;
+  if (!chats[i].pinned && pinnedCount >= 3) { showToast('Massimo 3 chat fissate'); return; }
+  chats[i].pinned = !chats[i].pinned;
+  const c = chats.splice(i, 1)[0];
+  if (c.pinned) chats.unshift(c);
+  else {
+    const lastPinned = chats.reduce((acc, ch, idx) => ch.pinned ? idx : acc, -1);
+    chats.splice(lastPinned + 1, 0, c);
+  }
+  curI = chats.indexOf(c);
+  await saveC(); renderList();
+}
+
+async function delCById(id) {
+  document.querySelectorAll('.chat-opts-menu.open').forEach(m => m.classList.remove('open'));
+  if (!confirm('Eliminare questa conversazione?')) return;
+  const i = chats.findIndex(c => c.id === id);
+  if (i < 0) return;
+  const menu = document.getElementById('com-' + id);
+  if (menu) menu.remove();
+  chats.splice(i, 1);
+  await deleteChatFS(id);
+  if (!chats.length) newCObj();
+  else if (curI >= chats.length) curI = chats.length - 1;
+  renderList(); renderChat();
+}
+
+/* ================================================================
+   EXPORT
+================================================================ */
+function exportChat() { exportChatIdx(curI); }
+
+function exportChatIdx(i) {
+  const c = chats[i];
+  if (!c || !c.msgs.length) { showToast('Nessun messaggio da esportare'); return; }
+  const title = generateChatTitle(c.msgs.find(m => m.role === 'user')?.content || '');
+  let txt = `=== Nyra · ${title} ===\nEsportata il ${new Date().toLocaleString('it-IT')}\n${'='.repeat(40)}\n\n`;
+  c.msgs.forEach(m => {
+    const who = m.role === 'user' ? 'Tu' : 'Nyra';
+    txt += `[${who}]\n${cleanFileTags(cleanMemoryTags(m.content || ''))}\n\n`;
+  });
+  triggerDownload(new Blob([txt], { type: 'text/plain;charset=utf-8' }), `nyra-${Date.now()}.txt`);
+}
+
+/* ================================================================
+   RENDER CHAT
+================================================================ */
+function renderChat() {
+  const inner = document.getElementById('chatInner');
+  inner.innerHTML = '';
+  let we = document.getElementById('welcomeWrap');
+  const nome = window.__userName || 'Utente';
+  const c = chats[curI];
+  const isTemp = !!(c && c.temp);
+
+  if (isTemp) {
+    we.innerHTML = `
+      <div class="w-icon">${welcomeStarSVG()}</div>
+      <h1>Chat Temporanea</h1>
+      <p>Questa conversazione <strong>non verrà salvata</strong> né comparirà nella cronologia.<br>
+      <span style="color:var(--red);font-size:.82rem">Attenzione: questa modalità NON equivale a E2EE.</span></p>`;
+    const exitBtn = document.createElement('button');
+    exitBtn.className = 'temp-exit-btn';
+    exitBtn.innerHTML = '<span class="material-icons-round">exit_to_app</span>Esci dalla chat temporanea';
+    exitBtn.onclick = exitTempChat;
+    we.appendChild(exitBtn);
+  } else {
+    we.innerHTML = `
+      <div class="w-icon">${welcomeStarSVG()}</div>
+      <h1>Ciao, ${escapeHtml(nome)}!</h1>
+      <p>Come posso aiutarti?</p>`;
+  }
+
+  if (sett.suggest !== false) {
+    const chipsWrap = document.createElement('div');
+    chipsWrap.className = 'w-suggestions';
+    SUGGESTIONS.forEach(s => {
+      const chip = document.createElement('button');
+      chip.className = 'w-chip';
+      chip.textContent = s;
+      chip.onclick = () => { document.getElementById('ui').value = s; onInp(document.getElementById('ui')); document.getElementById('ui').focus(); };
+      chipsWrap.appendChild(chip);
+    });
+    we.appendChild(chipsWrap);
+  }
+
+  if (c && c.msgs.length) {
+    we.style.display = 'none';
+    if (isTemp) {
+      const note = document.createElement('div');
+      note.className = 'temp-notice';
+      note.innerHTML = '<span class="material-icons-round">visibility_off</span>Chat temporanea attiva — questi messaggi non verranno salvati (non è E2EE)';
+      const inlineExit = document.createElement('button');
+      inlineExit.className = 'temp-notice-exit-btn';
+      inlineExit.innerHTML = '<span class="material-icons-round">exit_to_app</span>Esci';
+      inlineExit.onclick = exitTempChat;
+      note.appendChild(inlineExit);
+      inner.appendChild(note);
+    }
+    let lastUserIdx = -1;
+    for (let i = c.msgs.length - 1; i >= 0; i--) {
+      if (c.msgs[i].role === 'user') { lastUserIdx = i; break; }
+    }
+    c.msgs.forEach((m, idx) => {
+      const role = m.role === 'assistant' ? 'nyra' : 'user';
+      addMsg(role, m.content, false, m.images || null, idx === lastUserIdx, inner);
+    });
+  } else {
+    we.style.display = 'flex';
+  }
+
+  document.getElementById('chipModelName').textContent = sett.modelName || 'Modello';
+
+  const firstUserContent = c?.msgs?.find(m => m.role === 'user')?.content || '';
+  const hname = (c && c.msgs.length)
+    ? generateChatTitle(firstUserContent)
+    : (isTemp ? '🔒 Chat Temporanea' : 'Nyra');
+  document.getElementById('hdrName').textContent = hname;
+  scrollB(true);
+
+  // ricostruisce la libreria file/media per il drawer ad ogni cambio chat
+  rebuildChatMediaLibrary();
+  if (mediaDrawerOpen) renderMediaDrawer();
+}
+
+/* ================================================================
+   ADD MESSAGE
+   Per i messaggi di Nyra già salvati (renderChat da history),
+   estrae e ri-renderizza la galleria immagini raggruppata anche qui,
+   così il comportamento è coerente sia in live streaming che al reload.
+================================================================ */
+function addMsg(role, content, animate = true, images = null, isLastUser = false, targetEl = null) {
+  const inner = targetEl || document.getElementById('chatInner');
+  const we = document.getElementById('welcomeWrap');
+  if (we && content) we.style.display = 'none';
+
+  const isThinkingHTML = typeof content === 'string' && content.includes('class="thinking');
+  const isStatusHTML   = typeof content === 'string' && content.includes('class="status-line');
+
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (role === 'user' ? 'user' : 'nyra');
+
+  if (role === 'nyra' && !isThinkingHTML && !isStatusHTML) {
+    const starRow = document.createElement('div');
+    starRow.className = 'nyra-star-row';
+    starRow.innerHTML = gemStarSVG(20);
+    row.appendChild(starRow);
+  }
+
+  const bub = document.createElement('div');
+  bub.className = (role === 'user' ? 'bubble-user' : 'bubble-nyra') + (animate ? ' bubble-pop' : '');
+
+  if (role === 'user') {
+    if (images && images.length) {
+      images.forEach(src => {
+        const img = document.createElement('img');
+        img.className = 'user-img-preview';
+        img.alt = 'Immagine allegata';
+        img.loading = 'lazy';
+        img.onload  = () => img.classList.add('loaded');
+        img.onerror = () => img.remove();
+        img.src = src;
+        bub.appendChild(img);
+      });
+    }
+    if (content && content !== '[Allegato]') {
+      const p = document.createElement('p');
+      p.style.margin = '0'; p.textContent = content;
+      bub.appendChild(p);
+    }
+  } else if (isThinkingHTML || isStatusHTML) {
+    bub.innerHTML = content;
+  } else {
+    if (content) {
+      const fileBlocks = extractFileBlocks(content);
+      const cleaned = cleanFileTags(content);
+      try { bub.innerHTML = marked.parse(cleaned); } catch (e) { bub.textContent = cleaned; }
+      // estrae le immagini inline e le raggruppa in galleria a fine risposta
+      const gallery = extractAndRenderInlineGallery(bub);
+      if (gallery.length) renderNyraGallery(bub, gallery);
+      if (fileBlocks.length) renderFileCards(bub, fileBlocks);
+    }
+  }
+
+  row.appendChild(bub);
+  inner.appendChild(row);
+
+  if (role === 'user' && isLastUser) addUserActs(row);
+  if (role === 'nyra' && !isThinkingHTML && !isStatusHTML && content) addNyraActs(row, bub);
+
+  if (animate) scrollB();
+  return bub;
+}
+
+/* ================================================================
+   STREAMING / FADE-IN
+================================================================ */
+function updateBubbleStream(bub, text) {
+  if (!bub) return;
+  try { bub.innerHTML = marked.parse(text || ''); } catch (e) { bub.textContent = text || ''; }
+  scrollB();
+}
+
+async function fadeInWords(el, html) {
+  el.innerHTML = marked.parse(html);
+  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+  const nodes = [];
+  let n;
+  while ((n = walk.nextNode())) nodes.push(n);
+  const words = [];
+  nodes.forEach(tn => {
+    const par = tn.parentNode;
+    // non animare parola-per-parola dentro tag <img> o testo nascosto galleria
+    if (par && par.closest && par.closest('img.inline-extracted')) return;
+    const frg = document.createDocumentFragment();
+    tn.textContent.split(/(\s+)/).forEach(t => {
+      if (!t.trim()) { frg.appendChild(document.createTextNode(t)); }
+      else {
+        const s = document.createElement('span');
+        s.className = 'fw'; s.textContent = t;
+        frg.appendChild(s); words.push(s);
+      }
+    });
+    par.replaceChild(frg, tn);
+  });
+  const BASE = 22;
+  words.forEach((w, i) => { w.style.animationDelay = `${i * BASE}ms`; });
+  const totalMs = words.length * BASE + 200;
+  let elapsed = 0;
+  while (elapsed < totalMs) {
+    if (stopFlag) break;
+    await new Promise(r => setTimeout(r, 80));
+    elapsed += 80;
+    scrollB();
+  }
+}
+
+/* ================================================================
+   USER ACTIONS
+================================================================ */
+function addUserActs(row) {
+  const acts = document.createElement('div');
+  acts.className = 'msg-acts';
+  const editBtn = document.createElement('button');
+  editBtn.className = 'act edit-btn'; editBtn.title = 'Modifica';
+  editBtn.innerHTML = '<span class="material-icons-round">edit</span>';
+  editBtn.style.animationDelay = '0.1s';
+  editBtn.onclick = () => { if (!busy) editLastUserMsg(); };
+  acts.appendChild(editBtn); row.appendChild(acts);
+}
+
+function editLastUserMsg() {
+  if (busy) return;
+  const c = chats[curI];
+  if (!c || !c.msgs.length) return;
+  while (c.msgs.length > 0 && c.msgs[c.msgs.length - 1].role === 'assistant') c.msgs.pop();
+  const lastUser = c.msgs.pop();
+  const ui = document.getElementById('ui');
+  ui.value = (lastUser && lastUser.content && lastUser.content !== '[Allegato]') ? lastUser.content : '';
+  onInp(ui); ui.focus(); renderChat();
+}
+
+/* ================================================================
+   NYRA ACTIONS
+================================================================ */
+function addNyraActs(row, bub) {
+  const acts = document.createElement('div');
+  acts.className = 'msg-acts';
+
+  const rg = document.createElement('button');
+  rg.className = 'act'; rg.title = 'Rigenera';
+  rg.innerHTML = '<span class="material-icons-round">refresh</span>';
+  rg.style.animationDelay = '0.05s';
+  rg.onclick = () => regenerateLastResponse();
+
+  const cp = document.createElement('button');
+  cp.className = 'act'; cp.title = 'Copia';
+  cp.innerHTML = '<span class="material-icons-round">content_copy</span>';
+  cp.style.animationDelay = '0.1s';
+  cp.onclick = () => {
+    navigator.clipboard.writeText(bub.innerText || '').then(() => {
+      cp.innerHTML = '<span class="material-icons-round">check</span>';
+      cp.style.color = 'var(--green)';
+      setTimeout(() => { cp.innerHTML = '<span class="material-icons-round">content_copy</span>'; cp.style.color = ''; }, 2000);
+    }).catch(() => showToast('Copia non riuscita'));
+  };
+
+  const rp = document.createElement('button');
+  rp.className = 'act'; rp.title = 'Segnala risposta';
+  rp.innerHTML = '<span class="material-icons-round">flag</span>';
+  rp.style.animationDelay = '0.15s';
+  rp.onclick = async () => {
+    const txt = bub.innerText || '';
+    rp.disabled = true;
+    const c = chats[curI];
+    const msgIndex = c ? c.msgs.findLastIndex(m => m.role === 'assistant' && (m.content || '').includes(txt.slice(0, 60))) : -1;
+    const fd = new FormData();
+    fd.append('timestamp', new Date().toISOString());
+    fd.append('message', txt);
+    fd.append('userId', window.__uid || 'N/D');
+    fd.append('userName', window.__userName || 'N/D');
+    fd.append('userEmail', window.__userEmail || 'N/D');
+    fd.append('chatId', c?.id || 'N/D');
+    fd.append('modelId', sett.modelId || 'N/D');
+    fd.append('modelName', sett.modelName || 'N/D');
+    fd.append('msgIndex', msgIndex >= 0 ? String(msgIndex) : 'N/D');
+    fd.append('chatLog', c ? JSON.stringify(c.msgs.map(m => ({ role: m.role, content: m.content || '' }))) : '[]');
+    try {
+      await fetch('https://script.google.com/macros/s/AKfycbyNVCc_4noq7OEY-M-6luQcKi9nfwzFocWqV2_OmQTGXkmGSdepa2PhPbqtEkm-5z5ebA/exec',
+        { method: 'POST', body: fd, mode: 'no-cors' });
+      rp.innerHTML = '<span class="material-icons-round">check</span>';
+      showToast('Risposta segnalata');
+    } catch (e) {
+      rp.innerHTML = '<span class="material-icons-round">flag</span>';
+      rp.disabled = false; showToast('Errore nella segnalazione');
+    }
+  };
+
+  acts.appendChild(rg); acts.appendChild(cp); acts.appendChild(rp);
+  row.appendChild(acts);
+}
+
+/* ================================================================
+   RIGENERA RISPOSTA
+================================================================ */
+function regenerateLastResponse() {
+  if (busy) return;
+  const c = chats[curI];
+  if (!c || c.msgs.length < 2) return;
+  c.regenCount = (c.regenCount || 0);
+  if (c.regenCount >= 10) { showToast('Limite di 10 rigenerazioni raggiunto'); return; }
+  if (c.msgs[c.msgs.length - 1].role === 'assistant') c.msgs.pop();
+  const lastUser = c.msgs[c.msgs.length - 1];
+  const ui = document.getElementById('ui');
+  ui.value = (lastUser && lastUser.content && lastUser.content !== '[Allegato]') ? lastUser.content : '';
+  c.msgs.pop(); c.regenCount++;
+  renderChat(); send();
+}
+
+/* ================================================================
+   FILE PREVIEWS
+================================================================ */
+function renderFP() {
+  const pc = document.getElementById('fps');
+  pc.innerHTML = '';
+  if (files.length) {
+    pc.classList.add('on');
+    files.forEach((f, i) => {
+      const d = document.createElement('div'); d.className = 'fp';
+      const rm = document.createElement('button'); rm.className = 'rx'; rm.textContent = '×';
+      rm.onclick = ((idx) => () => { files.splice(idx, 1); renderFP(); updateSendBtn(); })(i);
+      d.appendChild(rm);
+      if (f.type.startsWith('image/')) {
+        const img = document.createElement('img'); img.alt = f.name;
+        img.onerror = () => { img.replaceWith(Object.assign(document.createElement('div'), { className:'fib', innerHTML:'<span class="material-icons-round">broken_image</span>' })); };
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; };
+        reader.readAsDataURL(f);
+        d.appendChild(img);
+      } else {
+        const b = document.createElement('div'); b.className = 'fib';
+        b.innerHTML = '<span class="material-icons-round">description</span>';
+        d.appendChild(b);
+      }
+      const fn = document.createElement('span'); fn.className = 'fn'; fn.textContent = f.name;
+      d.appendChild(fn); pc.appendChild(d);
+    });
+  } else {
+    pc.classList.remove('on');
+  }
+}
+
+/* ================================================================
+   INPUT
+================================================================ */
+function onInp(el) {
+  el.style.height = 'auto';
+  const newHeight = Math.min(el.scrollHeight, 140);
+  el.style.height = newHeight + 'px';
+  el.style.overflowY = el.scrollHeight > 140 ? 'auto' : 'hidden';
+  updateSendBtn();
+}
+
+function updateSendBtn() {
+  const btn  = document.getElementById('send-btn');
+  const icon = document.getElementById('send-icon');
+  if (busy) {
+    btn.classList.add('show', 'stop-mode');
+    icon.textContent = 'stop';
+  } else {
+    const hasContent = !!(document.getElementById('ui').value.trim() || files.length);
+    btn.classList.toggle('show', hasContent);
+    btn.classList.remove('stop-mode');
+    icon.textContent = 'arrow_upward';
+  }
+}
+
+function handleSendBtn() {
+  if (busy) doStop();
+  else send();
+}
+
+function doStop() {
+  stopFlag = true;
+  if (abortController) abortController.abort();
+  showToast('Risposta interrotta');
+}
+
+document.getElementById('fi').addEventListener('change', function() {
+  const newFiles = Array.from(this.files);
+  files = [...files, ...newFiles].slice(0, 5);
+  this.value = '';
+  renderFP(); updateSendBtn();
+});
+
+/* ================================================================
+   STRUMENTI — ricerca web
+================================================================ */
+function togToolsMenu(e) {
+  e.stopPropagation();
+  if (busy) { showToast('Attendi il completamento della risposta'); return; }
+  closeModelMenu(); closeProfileMenu();
+  const menu = document.getElementById('toolsMenu');
+  const isOpen = menu.classList.contains('open');
+  if (!isOpen) {
+    const btn = document.getElementById('toolsBtn');
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = 'auto'; menu.style.right = 'auto';
+    menu.style.left = rect.left + 'px';
+    menu.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+  }
+  menu.classList.toggle('open');
+}
+function closeToolsMenu() { document.getElementById('toolsMenu').classList.remove('open'); }
+
+function toggleWebSearch() {
+  webSearchOn = !webSearchOn;
+  document.getElementById('tmSearch').classList.toggle('active', webSearchOn);
+  document.getElementById('toolsBtn').classList.toggle('active-search', webSearchOn);
+  const chip  = document.getElementById('searchFlagChip');
+  const label = document.getElementById('searchFlagLabel');
+  const icon  = document.getElementById('searchFlagIcon');
+  if (chip)  chip.classList.toggle('forced', webSearchOn);
+  if (label) label.textContent = webSearchOn ? 'Ricerca web: Forzata' : 'Ricerca web: Auto';
+  if (icon)  icon.textContent  = webSearchOn ? 'public' : 'travel_explore';
+  showToast(webSearchOn ? '🔎 Ricerca sul web forzata' : 'Ricerca automatica: decide Nyra quando serve');
+}
+
+/* ================================================================
+   INVIO MESSAGGIO
+================================================================ */
+async function send() {
+  if (busy) return;
+
+  const inp = document.getElementById('ui');
+  const txt = inp.value.trim();
+  const fs  = [...files];
+
+  if (!txt && !fs.length) return;
+
+  abortController = new AbortController();
+  busy = true; stopFlag = false;
+  inp.disabled = true;
+  document.getElementById('fi').disabled = true;
+  updateSendBtn();
+
+  const imgPreviews = [];
+  const pf = [];
+  for (const f of fs) {
+    const b64 = await new Promise((res) => {
+      const r = new FileReader();
+      r.onload  = e => res(e.target.result);
+      r.onerror = () => res(null);
+      r.readAsDataURL(f);
+    });
+    if (!b64) continue;
+    pf.push({ name: f.name, type: f.type, content: b64 });
+    if (f.type.startsWith('image/')) imgPreviews.push(b64);
+  }
+
+  document.querySelectorAll('.edit-btn').forEach(b => b.closest('.msg-acts')?.remove());
+  addMsg('user', txt, true, imgPreviews.length ? imgPreviews : null, true);
+
+  const history = (chats[curI]?.msgs || []).map(m => ({ role: m.role, content: m.content || '' }));
+  chats[curI].ts = Date.now();
+  chats[curI].msgs.push({
+    role: 'user',
+    content: txt || '[Allegato]',
+    images: imgPreviews.length ? imgPreviews : undefined
+  });
+
+  inp.value = ''; inp.style.height = 'auto';
+  files = []; document.getElementById('fi').value = '';
+  renderFP(); updateSendBtn();
+
+  const statusHtml = webSearchOn
+    ? '<div class="status-line"><span class="material-icons-round">travel_explore</span>Sto cercando sul web...</div>'
+    : '<div class="thinking"><span></span><span></span><span></span></div>';
+  const thBub = addMsg('nyra', statusHtml, true);
+  ldRow = thBub ? thBub.closest('.msg-row') : null;
+  scrollB(true);
+
+  let searchStatusTimer = null;
+  let thinkingInterval  = null;
+
+  if (webSearchOn) {
+    searchStatusTimer = setTimeout(() => {
+      if (thBub && thBub.isConnected)
+        thBub.innerHTML = '<div class="status-line"><span class="material-icons-round">public</span>Analizzo le fonti trovate...</div>';
+    }, 1600);
+  } else {
+    searchStatusTimer = setTimeout(() => {
+      if (!thBub || !thBub.isConnected) return;
+      let phraseIdx = 0;
+      thinkingInterval = setInterval(() => {
+        if (!thBub.isConnected) { clearInterval(thinkingInterval); return; }
+        thBub.innerHTML = `<div class="status-line"><span class="material-icons-round">auto_awesome</span>${THINKING_PHRASES[phraseIdx % THINKING_PHRASES.length]}</div>`;
+        phraseIdx++;
+      }, 2200);
+    }, 1300);
+  }
+
+  function clearWaitFeedback() {
+    clearTimeout(searchStatusTimer);
+    if (thinkingInterval) clearInterval(thinkingInterval);
+  }
+
+  let bub = null;
+
+  try {
+    const memCtx = memories.length
+      ? '\n\nCose che ricordi di questo utente (NON ripeterle come nuovi tag MEMORY, sono già salvate):\n' + memories.map(m => `- ${m.text}`).join('\n')
+      : '';
+
+    const systemPrompt = `Sei Nyra, un'assistente AI amichevole, calorosa ed empatica creata da Aura Studio Italia. (Aura) aurastudioitalia.it
+Il nome dell'utente con cui stai parlando è "${window.__userName || 'Utente'}".
+Chiamalo per nome ogni volta che è naturale farlo.
+Rispondi SEMPRE in italiano, in modo friendly, coinvolgente e personale.
+Usa SEMPRE una formattazione Markdown ricca e chiara: titoli (# ##), grassetto (**testo**), liste puntate/numerate, blockquote per citazioni, tabelle quando utile, codice formattato. Struttura sempre la risposta in modo leggibile, con paragrafi brevi.
+Non essere mai fredda o generica — sei un'amica intelligente.
+${sett.sp ? '\nIstruzioni aggiuntive: ' + sett.sp : ''}${memCtx}
+${chats[curI]?.temp ? '\nQuesta è una CHAT TEMPORANEA: non verrà salvata da nessuna parte. Non generare tag [MEMORY: ...] in questa conversazione.' : ''}
+${webSearchOn ? '\nSTRUMENTO RICERCA WEB FORZATO: l\'utente ha forzato la ricerca sul web per questo messaggio. Usa i risultati forniti dal backend e cita le fonti, restituendo se disponibile un campo "sources" con {title,url} per ogni fonte usata. Se disponibili, includi anche un campo "searchImages" con array di {url,alt} per immagini pertinenti.' : '\nRICERCA WEB AUTOMATICA: l\'utente non ha forzato la ricerca, ma se il backend te lo consente puoi comunque decidere autonomamente di cercare informazioni aggiornate quando è necessario.'}
+
+ISTRUZIONE SPECIALE - MEMORIA: Se l'utente ti chiede esplicitamente di ricordare qualcosa, o se emerge un'informazione personale rilevante e duratura (nome di animali, hobby, preferenze, lavoro, famiglia, ecc.), includi alla FINE della risposta un tag [MEMORY: informazione concisa]. Massimo 1-2 tag per risposta. NON creare un tag se un'informazione molto simile è già elencata sopra in "Cose che ricordi". Non menzionare questo meccanismo all'utente. Non salvare dati sensibili come password, dati bancari o numeri di telefono.
+
+ISTRUZIONE SPECIALE - FILE: Se l'utente chiede esplicitamente di generare/scaricare un file (.txt, .md, .pdf, .docx o .adxe — il formato Aura Docs), scrivi una breve introduzione normale e poi includi il contenuto avvolto in un tag: [FILE:estensione:nomefile.estensione] contenuto completo del file [/FILE]. Usa "adxe" solo se l'utente chiede esplicitamente il formato Aura Docs. Puoi includere un solo blocco FILE per risposta salvo diversa richiesta.
+
+ISTRUZIONE SPECIALE - IMMAGINI: Se includi immagini nella risposta (generate o trovate), usa la normale sintassi markdown ![alt](url). Nyra le raggrupperà automaticamente in una galleria pulita a fine risposta: non è necessario descriverle una per una nel testo, basta il markdown dell'immagine.
+
+COMANDI: /reasoning - mostra il ragionamento interno di Nyra (debug), /chat-compact compatta la chat elencando i punti più importanti`;
+
+    const res = await fetch('https://api-nyra-temp-cloudflare.aurastudio-italia.workers.dev/nyra', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: txt || '',
+        history,
+        files: pf.length ? pf : undefined,
+        model: sett.modelId,
+        temperature: sett.temp,
+        systemPrompt,
+        useSearch: webSearchOn || undefined
+      }),
+      signal: abortController.signal,
+    });
+
+    let data;
+    try { data = await res.json(); } catch (e) { throw new Error('Risposta non valida dal server'); }
+
+    if (!res.ok) {
+      const errMsg = data?.error || `Errore server: ${res.status}`;
+      throw new Error(errMsg);
+    }
+
+    clearWaitFeedback();
+    if (ldRow && ldRow.parentElement) { ldRow.remove(); ldRow = null; }
+
+    let finalReply = data.reply || '';
+    const memSuggestions = chats[curI]?.temp ? [] : extractMemorySuggestions(finalReply);
+    const cleanedOfMemory = cleanMemoryTags(finalReply);
+
+    bub = addMsg('nyra', '', false);
+    bub.classList.remove('bubble-pop');
+
+    const fileBlocks = extractFileBlocks(cleanedOfMemory);
+    const displayText = cleanFileTags(cleanedOfMemory);
+
+    if (sett.tw) await fadeInWords(bub, displayText);
+    else updateBubbleStream(bub, displayText);
+
+    // estrae e raggruppa TUTTE le immagini markdown della risposta in galleria
+    const gallery = extractAndRenderInlineGallery(bub);
+    if (gallery.length) renderNyraGallery(bub, gallery);
+
+    if (fileBlocks.length) renderFileCards(bub, fileBlocks);
+
+    // Immagini dalla ricerca web (separate, mostrate con la stessa logica raggruppata)
+    if (Array.isArray(data.searchImages) && data.searchImages.length) {
+      renderSearchImages(bub, data.searchImages);
+    }
+
+    if (Array.isArray(data.sources) && data.sources.length) {
+      const srcWrap = document.createElement('div');
+      srcWrap.className = 'sources-wrap';
+      data.sources.slice(0, 6).forEach((s, i) => {
+        const a = document.createElement('a');
+        a.className = 'source-chip';
+        a.href = s.url || '#'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.innerHTML = `<span class="sc-n">${i + 1}</span><span class="sc-t">${escapeHtml(s.title || s.url || 'Fonte')}</span>`;
+        srcWrap.appendChild(a);
+      });
+      bub.appendChild(srcWrap);
+    }
+
+    if (Array.isArray(data.updatedHistory)) {
+      chats[curI].msgs = data.updatedHistory.map(m => ({ role: m.role, content: m.content || '' }));
+    } else {
+      chats[curI].msgs.push({ role: 'assistant', content: cleanedOfMemory });
+    }
+    await saveC();
+
+    let savedCount = 0;
+    for (const mem of memSuggestions) {
+      const ok = await saveMemory(mem);
+      if (ok) savedCount++;
+    }
+    if (savedCount) showToast(`🧠 Nyra ha memorizzato ${savedCount} info`);
+
+    const row = bub.closest('.msg-row');
+    if (row && !row.querySelector('.msg-acts')) addNyraActs(row, bub);
+
+    const firstMsg = chats[curI]?.msgs?.find(m => m.role === 'user')?.content || '';
+    document.getElementById('hdrName').textContent = generateChatTitle(firstMsg);
+    renderList();
+
+    // aggiorna il drawer file/media se aperto
+    if (mediaDrawerOpen) renderMediaDrawer();
+
+  } catch (err) {
+    clearWaitFeedback();
+    if (ldRow && ldRow.parentElement) { ldRow.remove(); ldRow = null; }
+    if (err.name === 'AbortError' || stopFlag) {
+      // Risposta interrotta volontariamente — silenzioso
+    } else {
+      addMsg('nyra', `<span style="color:var(--red)">⚠️ ${escapeHtml(err.message || 'Impossibile contattare il server.')}</span>`);
+      console.error('send() error:', err);
+    }
+  } finally {
+    busy = false; abortController = null;
+    inp.disabled = false;
+    document.getElementById('fi').disabled = false;
+    updateSendBtn(); inp.focus();
+  }
+}
+
+/* ================================================================
+   SETTINGS
+================================================================ */
+const SETT_TAB_META = {
+  generale:   { title: 'Generale',       sub: 'Preferenze principali di Nyra' },
+  modelli:    { title: 'Intelligenza',   sub: 'Scegli il modello e la creatività' },
+  aspetto:    { title: 'Chat & Aspetto', sub: 'Tema, animazioni e Aura Docs' },
+  istruzioni: { title: 'Istruzioni',     sub: 'Comportamento personalizzato' },
+  privacy:    { title: 'Privacy & Dati', sub: 'Esportazione e conservazione' },
+  dati:       { title: 'Gestione Dati',  sub: 'Memoria e cronologia' },
+  altro:      { title: 'Altro da Aura',  sub: "Scopri gli altri servizi dell'ecosistema" },
+  info:       { title: 'Informazioni',   sub: 'Supporto, termini e privacy' }
+};
+
+function switchSettTab(tab) {
+  document.querySelectorAll('.ss-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.ss-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+  const meta = SETT_TAB_META[tab];
+  if (meta) {
+    document.getElementById('ssPanelTitle').textContent = meta.title;
+    document.getElementById('ssPanelSub').textContent   = meta.sub;
+  }
+  // Aggiorna il label del selector mobile
+  const label = document.getElementById('ssMobileSelectLabel');
+  if (label) label.textContent = meta?.title || tab;
+}
+
+function togSsMobileMenu(e) {
+  if (e) e.stopPropagation();
+  const selector = document.getElementById('ssMobileSelector');
+  if (!selector) return;
+  
+  selector.classList.toggle('open');
+  
+  if (selector.classList.contains('open')) {
+    const btn = selector.querySelector('.ss-mobile-select-btn');
+    const menu = selector.querySelector('.ss-mobile-select-menu');
+    if (btn && menu) {
+      const rect = btn.getBoundingClientRect();
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.left = rect.left + 'px';
+      menu.style.width = rect.width + 'px';
+    }
+  }
+}
+
+function closeSsMobileMenu() {
+  const selector = document.getElementById('ssMobileSelector');
+  if (selector) selector.classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const selector = document.getElementById('ssMobileSelector');
+  if (selector && !selector.contains(e.target)) closeSsMobileMenu();
+});
+
+function selectModel(id, name) {
+  sett.modelId = id; sett.modelName = name;
+  updateModelCards(); saveSett();
+  document.getElementById('chipModelName').textContent = name;
+}
+
+function updateModelCards() {
+  document.querySelectorAll('.ss-model-card').forEach(c => c.classList.remove('active'));
+  const mg = document.getElementById('m-gemma');
+  const mp = document.getElementById('m-gpt');
+  if (sett.modelId === 'google/gemma-4-31b-it') { if (mg) mg.classList.add('active'); }
+  else { if (mp) mp.classList.add('active'); }
+  document.querySelectorAll('.mm-item').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-model') === sett.modelId);
+  });
+}
+
+function openSett() {
+  document.getElementById('s-tw').checked  = sett.tw;
+  document.getElementById('s-tempdefault').checked = !!sett.tempDefault;
+  document.getElementById('s-tmp').value   = sett.temp;
+  document.getElementById('s-tv').textContent = parseFloat(sett.temp).toFixed(1);
+  document.getElementById('s-sp').value    = sett.sp || '';
+  document.getElementById('s-searchdefault').checked = !!sett.searchDefault;
+  document.getElementById('s-suggest').checked = sett.suggest !== false;
+  document.getElementById('s-adxauto').checked = !!sett.adxAutoSave;
+  document.getElementById('sv').classList.add('on');
+  updateModelCards();
+  switchSettTab('generale');
+  closeProfileMenu();
+  document.querySelectorAll('.theme-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.themeVal === currentTheme);
+  });
+}
+function closeSett() { document.getElementById('sv').classList.remove('on'); }
+
+function saveSett() {
+  sett.tw          = document.getElementById('s-tw').checked;
+  sett.tempDefault = document.getElementById('s-tempdefault').checked;
+  sett.temp        = parseFloat(document.getElementById('s-tmp').value);
+  sett.sp          = document.getElementById('s-sp').value;
+  sett.searchDefault = document.getElementById('s-searchdefault').checked;
+  sett.suggest     = document.getElementById('s-suggest').checked;
+  sett.adxAutoSave = document.getElementById('s-adxauto').checked;
+  document.getElementById('chipModelName').textContent = sett.modelName;
+  localStorage.setItem('ns', JSON.stringify(sett));
+  saveSettingsFS(); renderChat();
+}
+
+function togModelMenu(event) {
+  event.stopPropagation();
+  if (busy) { showToast('Attendi il completamento della risposta'); return; }
+  const m = document.getElementById('modelMenu');
+  const isOpen = m.classList.contains('open');
+  if (!isOpen) {
+    closeProfileMenu(); closeToolsMenu(); updateModelCards();
+    const chip = document.querySelector('.speed-chip');
+    const rect = chip.getBoundingClientRect();
+    m.style.top = 'auto'; m.style.left = 'auto';
+    m.style.right  = (window.innerWidth - rect.right) + 'px';
+    m.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+  }
+  m.classList.toggle('open');
+}
+function closeModelMenu() { document.getElementById('modelMenu').classList.remove('open'); }
+
+function loadSett() {
+  const s = localStorage.getItem('ns');
+  if (s) { try { sett = { ...sett, ...JSON.parse(s) }; } catch (e) {} }
+  const collapsedPref = localStorage.getItem('nsc');
+  if (collapsedPref === '1') {
+    sidebarCollapsed = true;
+    document.getElementById('sidebar').classList.add('collapsed');
+  }
+  const openPref = localStorage.getItem('nsb_open');
+  sidebarOpenDesktop = openPref === null ? true : openPref === '1';
+}
+
+async function clearAll() {
+  if (!confirm('Eliminare tutta la cronologia? Questa operazione è irreversibile.')) return;
+  try {
+    const { collection, getDocs, doc, deleteDoc } = window.__fs;
+    const uid = window.__uid;
+    if (uid) {
+      const snap = await getDocs(collection(window.__db, `nyra/${uid}/chats`));
+      await Promise.all(snap.docs.map(d => deleteDoc(doc(window.__db, `nyra/${uid}/chats/${d.id}`))));
+    }
+  } catch (e) { console.warn('clearAll:', e); }
+  chats = [];
+  try { localStorage.removeItem('nc'); localStorage.removeItem('ni'); } catch (e) {}
+  newCObj(); renderList(); renderChat(); closeSett();
+  showToast('Cronologia eliminata');
+}
+
+/* ================================================================
+   PROFILE MENU
+================================================================ */
+function togProfileMenu() {
+  const m = document.getElementById('profileMenu');
+  const isOpen = m.classList.contains('open');
+  if (!isOpen) {
+    closeModelMenu(); closeToolsMenu();
+    const nome = window.__userName || 'Utente';
+    document.getElementById('pmName').textContent = nome;
+    const row  = document.querySelector('.sb-profile-row');
+    const rect = row.getBoundingClientRect();
+    m.style.top = 'auto'; m.style.right = 'auto';
+    m.style.left   = rect.left + 'px';
+    m.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  }
+  m.classList.toggle('open');
+}
+function closeProfileMenu() { document.getElementById('profileMenu').classList.remove('open'); }
+
+function applyProfile() {
+  const av   = document.getElementById('hdrAvImg');
+  const ltr  = document.getElementById('hdrAvLtr');
+  const nome = window.__userName || 'Utente';
+  document.getElementById('pmName').textContent = nome;
+  if (window.__userAvatar) {
+    av.classList.remove('loaded');
+    av.onload  = () => { av.classList.add('loaded'); if (ltr) ltr.style.display = 'none'; };
+    av.onerror = () => {
+      // [FIX] fallback: se l'immagine avatar non carica, torna alla lettera iniziale
+      av.style.display = 'none';
+      if (ltr) { ltr.style.display = ''; ltr.textContent = nome.charAt(0).toUpperCase(); }
+    };
+    av.src = window.__userAvatar; av.style.display = 'block';
+  } else {
+    av.style.display = 'none';
+    if (ltr) { ltr.style.display = ''; ltr.textContent = nome.charAt(0).toUpperCase(); }
+  }
+}
+
+async function doLogout() {
+  closeProfileMenu();
+  try { await window.__signOut(window.__auth); } catch (e) {}
+  window.location.href = 'index.html';
+}
+
+/* ================================================================
+   MODALS
+================================================================ */
+function closeM(id, key) {
+  document.getElementById(id).classList.remove('on');
+  if (key) localStorage.setItem(key, '1');
+  if (id === 'mAdx') pendingAdxFile = null;
+}
+
+/* ================================================================
+   CLICK GLOBALE — chiudi menu
+================================================================ */
+document.addEventListener('click', e => {
+  const profRow  = document.querySelector('.sb-profile-row');
+  const profMenu = document.getElementById('profileMenu');
+  if (profRow && profMenu && !profRow.contains(e.target) && !profMenu.contains(e.target)) closeProfileMenu();
+
+  const toolsBtn  = document.getElementById('toolsBtn');
+  const toolsMenu = document.getElementById('toolsMenu');
+  if (toolsMenu && !toolsMenu.contains(e.target) && toolsBtn && !toolsBtn.contains(e.target)) closeToolsMenu();
+
+  const speedChip = document.querySelector('.speed-chip');
+  const modelMenu = document.getElementById('modelMenu');
+  if (modelMenu && !modelMenu.contains(e.target) && speedChip && !speedChip.contains(e.target)) closeModelMenu();
+
+  if (!e.target.closest('.cia') && !e.target.closest('.chat-opts-menu')) {
+    document.querySelectorAll('.chat-opts-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+/* ================================================================
+   INIZIALIZZAZIONE
+================================================================ */
+loadTheme();
+loadSett();
+setupScrollListener();
+initPasteSupport();
+updateSbToggleIcon();
+
+window.addEventListener('nyra-ready', async () => {
+  applyProfile();
+  await loadSettingsFS();
+
+  document.getElementById('chipModelName').textContent = sett.modelName || 'GPT-5 Nano';
+  webSearchOn = !!sett.searchDefault;
+  document.getElementById('tmSearch').classList.toggle('active', webSearchOn);
+  document.getElementById('toolsBtn').classList.toggle('active-search', webSearchOn);
+  const chip  = document.getElementById('searchFlagChip');
+  const label = document.getElementById('searchFlagLabel');
+  const icon  = document.getElementById('searchFlagIcon');
+  if (chip)  chip.classList.toggle('forced', webSearchOn);
+  if (label) label.textContent = webSearchOn ? 'Ricerca web: Forzata' : 'Ricerca web: Auto';
+  if (icon)  icon.textContent  = webSearchOn ? 'public' : 'travel_explore';
+  updateModelCards();
+
+  // Stato iniziale sidebar (sospesa, apre di default su desktop)
+  const s = document.getElementById('sidebar');
+  if (isDesktop()) { s.classList.toggle('open', sidebarOpenDesktop); }
+  else { s.classList.remove('open'); }
+  updateMainColMargin();
+  updateSbToggleIcon();
+
+  await loadMemory();
+  await loadC();
+
+  checkV4Modal();
+  initDonationStrip();
+
+  if (!localStorage.getItem('nwn')) {
+    setTimeout(() => document.getElementById('mWN').classList.add('on'), 800);
+  }
+});
+</script>
+</body>
+</html>
